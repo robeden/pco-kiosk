@@ -8,6 +8,8 @@ import org.scribe.model.Response;
 import org.scribe.model.Token;
 import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
+import spark.Request;
+import spark.Route;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,20 +33,23 @@ public class Main {
 		String access_key = args[ 2 ];
 		String access_secret = args[ 3 ];
 
-		AtomicReference<Organization> info_slot = new AtomicReference<>();
+		final AtomicReference<Organization> info_slot = new AtomicReference<>();
 
 
 		staticFileLocation( "/css" );
 
-		get( "/", ( req, res ) -> {
-			Organization info = info_slot.get();  // TODO: load full info
+		get( "/", new Route() {
+			@Override
+			public Object handle( Request request, spark.Response response ) {
+				Organization info = info_slot.get();  // TODO: load full info
 
-			if ( info == null ) {
-				return createLoadingPage();
+				if ( info == null ) {
+					return createLoadingPage();
+				}
+
+
+				return "Org: " + info.getName();
 			}
-
-
-			return "Org: " + info.getName();
 		} );
 
 
