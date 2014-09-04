@@ -1,7 +1,11 @@
 package net.stratfordpark.pco;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import net.stratfordpark.pco.api.Organization;
+import net.stratfordpark.pco.api.Plan;
+import net.stratfordpark.pco.api.ServiceType;
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
@@ -12,6 +16,8 @@ import spark.Request;
 import spark.Route;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static spark.Spark.get;
@@ -62,14 +68,33 @@ public class Main {
 
 		Token access_token = new Token( access_key, access_secret );
 
-		Gson gson = new Gson();
+		Gson gson = new GsonBuilder()
+			.setDateFormat( "yyyy/MM/dd HH:mm:ss Z" )      // "2012/12/28 18:00:00 -0800"
+			.create();
 
 		Thread.sleep( 5000 );
 
 		Organization org = loadOrganizationInfo( service, access_token, gson );
 		info_slot.set( org );
 
-		System.out.println( "Loaded organization: " + org );
+
+		for( ServiceType service_type : org.getServiceTypes() ) {
+
+			OAuthRequest request = new OAuthRequest( Verb.GET,
+				"https://www.planningcenteronline.com/service_types/" +
+				service_type.getId() + "/plans.json" );
+			service.signRequest( access_token, request );
+
+			Response response = request.send();
+
+
+			Type collection_type = new TypeToken<List<Plan>>(){}.getType();
+			List<Plan> plans = gson.fromJson( response.getBody(), collection_type );
+
+			System.out.println( service_type.getName() + " plans: " + plans );
+			System.out.println();
+		}
+
 	}
 
 
