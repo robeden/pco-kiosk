@@ -25,22 +25,22 @@ public class Plan {
 	private final String total_length_formatted;
 	private final String comma_separated_attachment_type_ids;
 	private final List<String> plan_notes;
-	private final List<String> plan_people;
-	private final List<String> items;
-	private final List<String> positions;
+	private final List<PlanPerson> plan_people;
+	private final List<PlanItem> items;
+//	private final List<String> positions;
 	private final List<ServiceTime> service_times;
-	private final List<String> rehearsal_times;
-	private final List<String> other_times;
+	private final List<ServiceTime> rehearsal_times;
+	private final List<ServiceTime> other_times;
 
 	public Plan( long id, String plan_title, String series_title, int service_type_id,
 		String dates, long series, boolean is_public, Date updated_at,
 		Date created_at, String type, String permissions,
 		ServiceType service_type, int total_length, String total_length_formatted,
 		String comma_separated_attachment_type_ids,
-		List<String> plan_notes, List<String> plan_people,
-		List<String> items, List<String> positions,
-		List<ServiceTime> service_times, List<String> rehearsal_times,
-		List<String> other_times ) {
+		List<String> plan_notes, List<PlanPerson> plan_people,
+		List<PlanItem> items, //List<String> positions,
+		List<ServiceTime> service_times, List<ServiceTime> rehearsal_times,
+		List<ServiceTime> other_times ) {
 		this.id = id;
 		this.plan_title = plan_title;
 		this.series_title = series_title;
@@ -59,7 +59,7 @@ public class Plan {
 		this.plan_notes = plan_notes;
 		this.plan_people = plan_people;
 		this.items = items;
-		this.positions = positions;
+//		this.positions = positions;
 		this.service_times = service_times;
 		this.rehearsal_times = rehearsal_times;
 		this.other_times = other_times;
@@ -130,27 +130,27 @@ public class Plan {
 		return plan_notes;
 	}
 
-	public List<String> getPlanPeople() {
+	public List<PlanPerson> getPlanPeople() {
 		return plan_people;
 	}
 
-	public List<String> getItems() {
+	public List<PlanItem> getItems() {
 		return items;
 	}
 
-	public List<String> getPositions() {
-		return positions;
-	}
+//	public List<String> getPositions() {
+//		return positions;
+//	}
 
 	public List<ServiceTime> getServiceTimes() {
 		return service_times;
 	}
 
-	public List<String> getRehearsalTimes() {
+	public List<ServiceTime> getRehearsalTimes() {
 		return rehearsal_times;
 	}
 
-	public List<String> getOtherTimes() {
+	public List<ServiceTime> getOtherTimes() {
 		return other_times;
 	}
 
@@ -178,7 +178,7 @@ public class Plan {
 			", plan_notes=" + plan_notes +
 			", plan_people=" + plan_people +
 			", items=" + items +
-			", positions=" + positions +
+//			", positions=" + positions +
 			", service_times=" + service_times +
 			", rehearsal_times=" + rehearsal_times +
 			", other_times=" + other_times +

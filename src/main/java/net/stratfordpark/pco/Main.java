@@ -1,30 +1,32 @@
 package net.stratfordpark.pco;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import net.stratfordpark.pco.api.Organization;
-import net.stratfordpark.pco.api.Plan;
-import net.stratfordpark.pco.api.ServiceType;
 import org.scribe.builder.ServiceBuilder;
-import org.scribe.model.OAuthRequest;
-import org.scribe.model.Response;
 import org.scribe.model.Token;
-import org.scribe.model.Verb;
 import org.scribe.oauth.OAuthService;
 import spark.Request;
 import spark.Route;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static spark.Spark.get;
+import static spark.SparkBase.setPort;
 import static spark.SparkBase.staticFileLocation;
 
 
 public class Main {
+	private static final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMMM d" );
+	private static final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
+
+
 	public static void main(String[] args) throws Exception {
 		if ( args.length < 4 ) {
 			System.out.println(
@@ -33,32 +35,32 @@ public class Main {
 			return;
 		}
 
+
 		// TODO: real CLI parser. Will also want: refresh time, etc.
 		String api_key = args[ 0 ];
 		String api_secret = args[ 1 ];
 		String access_key = args[ 2 ];
 		String access_secret = args[ 3 ];
+		long update_period = TimeUnit.MINUTES.toMillis( 15 );
+		int port = 8888;
 
-		final AtomicReference<Organization> info_slot = new AtomicReference<>();
+		final AtomicReference<Data> data_slot = new AtomicReference<>();
 
-
+		setPort( port );
 		staticFileLocation( "/css" );
 
 		get( "/", new Route() {
 			@Override
 			public Object handle( Request request, spark.Response response ) {
-				Organization info = info_slot.get();  // TODO: load full info
+				Data data = data_slot.get();
 
-				if ( info == null ) {
+				if ( data == null ) {
 					return createLoadingPage();
 				}
 
-
-				return "Org: " + info.getName();
+				return buildMainPage( data );
 			}
 		} );
-
-
 
 		OAuthService service = new ServiceBuilder()
 			.provider( PlanningCenterOnlineApi.class )
@@ -68,51 +70,102 @@ public class Main {
 
 		Token access_token = new Token( access_key, access_secret );
 
-		Gson gson = new GsonBuilder()
-			.setDateFormat( "yyyy/MM/dd HH:mm:ss Z" )      // "2012/12/28 18:00:00 -0800"
-			.create();
+		final DataFetcher fetcher = new DataFetcher( service, access_token );
 
-		Thread.sleep( 5000 );
-
-		Organization org = loadOrganizationInfo( service, access_token, gson );
-		info_slot.set( org );
-
-
-		for( ServiceType service_type : org.getServiceTypes() ) {
-
-			OAuthRequest request = new OAuthRequest( Verb.GET,
-				"https://www.planningcenteronline.com/service_types/" +
-				service_type.getId() + "/plans.json" );
-			service.signRequest( access_token, request );
-
-			Response response = request.send();
-
-
-			Type collection_type = new TypeToken<List<Plan>>(){}.getType();
-			List<Plan> plans = gson.fromJson( response.getBody(), collection_type );
-
-			System.out.println( service_type.getName() + " plans: " + plans );
-			System.out.println();
-		}
-
+		Timer timer = new Timer( "Fetch timer" );
+		timer.schedule( new TimerTask() {
+			@Override
+			public void run() {
+				Data data = fetcher.fetchData();
+				if ( data != null ) {
+					data_slot.set( data );
+				}
+			}
+		}, 0, update_period );
 	}
 
 
-	private static Organization loadOrganizationInfo( OAuthService service,
-		Token access_token, Gson gson ) throws IOException {
+	private static String buildMainPage( Data data ) {
+		StringWriter string_writer = new StringWriter();
+		PrintWriter writer = new PrintWriter( string_writer );
 
-		OAuthRequest request = new OAuthRequest( Verb.GET,
-			"https://www.planningcenteronline.com/organization.json" );
-		service.signRequest( access_token, request );
+		writer.println( "<!DOCTYPE html>" );
+		writer.println( "<html>" );
+		writer.println( "  <head>" );
+		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
+			"href=\"bootstrap.min.css\"/>" );
+		writer.println( "</head>" );
 
-		Response response = request.send();
+		writer.println( "  <body>" );
+		writer.println( "    <div class=\"container-fluid\">" );
+		writer.println( "    <div class=\"page-header\">" );
+		writer.println( "      <h1>Volunteer Schedules <small>" + data.getOrgName() +
+			"</small></h1>" );
+		writer.println( "    </div>" );
 
-		if ( response.getCode() != 200 ) {
-			throw new IOException( "Error loading organization info (status " +
-				response.getCode() + "): " + response.getMessage() );
+		writer.println( "    <h2>This Week <small>" +
+			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2>" );
+		writer.println( "    <div class=\"week row\">" );
+
+		int columns = determineGridColumns( data.getThisWeekServices().size() );
+		for( ServiceData service_data : data.getThisWeekServices() ) {
+			buildServiceBlock( service_data, columns, writer );
+		}
+		writer.println( "    </div>" );
+
+		writer.println( "    <hr>" );
+
+
+		writer.println( "    <h2>Next Week <small>" +
+			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2>" );
+		writer.println( "    <div class=\"week row\">" );
+
+		columns = determineGridColumns( data.getNextWeekServices().size() );
+		for( ServiceData service_data : data.getNextWeekServices() ) {
+			buildServiceBlock( service_data, columns, writer );
+		}
+		writer.println( "      </div>" );
+		writer.println( "    </div>" );
+		writer.println( "  </body>" );
+		writer.println( "</html>" );
+
+		return string_writer.toString();
+	}
+
+
+	private static void buildServiceBlock( ServiceData data, int columns,
+		PrintWriter writer ) {
+
+		writer.println( "      <div class=\"col-md-" + columns + "\">" );
+		writer.println( "        <h3>" + data.getName() + " <small>" +
+			TIME_DATE_FORMAT.format( data.getStartDate() ) + "</small></h3>" );
+		writer.println( "        <table class=\"table\">" );
+		for( Map.Entry<String,List<ServiceData.NeedOrVolunteer>> entry :
+			data.getVolunteerMap().entrySet() ) {
+
+			writer.print( "        <tr><td>" + entry.getKey() + "</td>" );
+
+
+			boolean needs_warning = false;
+			for( ServiceData.NeedOrVolunteer nov : entry.getValue() ) {
+				if ( nov instanceof ServiceData.Need ) needs_warning = true;
+			}
+
+			if ( needs_warning ) writer.print( "<td class=\"warning\">" );
+			else writer.print( "<td>" );
+
+			boolean first = true;
+			for( ServiceData.NeedOrVolunteer nov : entry.getValue() ) {
+				if ( first ) first = false;
+				else writer.print( "<br>" );
+
+				writer.print( nov );
+			}
+			writer.println( "</td></tr>" );
 		}
 
-		return gson.fromJson( response.getBody(), Organization.class );
+		writer.println( "        </table>" );
+		writer.println( "      </div>" );
 	}
 
 
@@ -134,5 +187,24 @@ public class Main {
 			"\t\t</div>\n" +
 			"\t</body>\n" +
 			"</html>";
+	}
+
+
+	private static int determineGridColumns( int num_services ) {
+		switch( num_services ) {
+			case 1:
+				return 12;
+			case 2:
+				return 6;
+			case 3:
+				return 4;
+			case 4:
+				return 3;
+			case 5:
+			case 6:
+				return 2;
+			default:
+				return 1;
+		}
 	}
 }
