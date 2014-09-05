@@ -15,14 +15,21 @@ class Data {
 	private final Date next_week_date;
 	private final List<ServiceData> next_week_services;
 
-	Data( String org_name, Date this_week_date,
-		List<ServiceData> this_week_services, Date next_week_date,
-		List<ServiceData> next_week_services ) {
+	private final Date two_weeks_date;
+	private final List<ServiceData> two_weeks_services;
+
+	Data( String org_name,
+		Date this_week_date, List<ServiceData> this_week_services,
+		Date next_week_date, List<ServiceData> next_week_services,
+		Date two_weeks_date, List<ServiceData> two_weeks_services ) {
+
 		this.org_name = org_name;
 		this.this_week_date = this_week_date;
 		this.this_week_services = this_week_services;
 		this.next_week_date = next_week_date;
 		this.next_week_services = next_week_services;
+		this.two_weeks_date = two_weeks_date;
+		this.two_weeks_services = two_weeks_services;
 	}
 
 
@@ -44,5 +51,13 @@ class Data {
 
 	public List<ServiceData> getNextWeekServices() {
 		return next_week_services;
+	}
+
+	public Date getTwoWeeksDate() {
+		return two_weeks_date;
+	}
+
+	public List<ServiceData> getTwoWeeksServices() {
+		return two_weeks_services;
 	}
 }

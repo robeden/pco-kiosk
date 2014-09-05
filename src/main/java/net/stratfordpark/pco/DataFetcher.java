@@ -51,14 +51,18 @@ class DataFetcher {
 				fetch( "https://www.planningcenteronline.com/organization.json",
 				Organization.class );
 
-			Date this_sunday = computeSundayDate( true );
+			Date this_sunday = computeSundayDate( 0 );
 			String this_sunday_string = DATE_FORMAT.format( this_sunday );
 
-			Date next_sunday = computeSundayDate( false );
+			Date next_sunday = computeSundayDate( 1 );
 			String next_sunday_string = DATE_FORMAT.format( next_sunday );
+
+			Date two_weeks_sunday = computeSundayDate( 2 );
+			String two_weeks_sunday_string = DATE_FORMAT.format( two_weeks_sunday );
 
 			List<ServiceData> this_week_services = new ArrayList<>();
 			List<ServiceData> next_week_services = new ArrayList<>();
+			List<ServiceData> two_weeks_services = new ArrayList<>();
 
 			for( ServiceType service_type : org.getServiceTypes() ) {
 				Type collection_type = new TypeToken<List<Plan>>(){}.getType();
@@ -67,10 +71,23 @@ class DataFetcher {
 					service_type.getId() + "/plans.json", collection_type );
 
 				for( Plan plan : plans ) {
-					boolean matches_this_week = this_sunday_string.equals( plan.getDates() );
-					boolean matches_next_week = next_sunday_string.equals( plan.getDates() );
+					Date matching_sunday = null;
+					List<ServiceData> service_list = null;
 
-					if ( !matches_this_week && !matches_next_week ) continue;
+					if ( this_sunday_string.equals( plan.getDates() ) ) {
+						matching_sunday = this_sunday;
+						service_list = this_week_services;
+					}
+					else if ( next_sunday_string.equals( plan.getDates() ) ) {
+						matching_sunday = next_sunday;
+						service_list = next_week_services;
+					}
+					else if ( two_weeks_sunday_string.equals( plan.getDates() ) ) {
+						matching_sunday = two_weeks_sunday;
+						service_list = two_weeks_services;
+					}
+
+					if ( matching_sunday == null ) continue;
 
 					// We get more information when making a specific request for the plan
 					plan = fetch( "https://www.planningcenteronline.com/plans/" +
@@ -82,8 +99,7 @@ class DataFetcher {
 
 						start_time = plan.getServiceTimes().get( 0 ).getStartsAt();
 					}
-					else if ( matches_this_week ) start_time = this_sunday;
-					else start_time = next_sunday;
+					else start_time = matching_sunday;
 
 
 					SortedMap<String, List<ServiceData.NeedOrVolunteer>> volunteer_map =
@@ -124,8 +140,7 @@ class DataFetcher {
 					ServiceData service_data = new ServiceData( service_type.getName(),
 						start_time, volunteer_map );
 
-					if ( matches_this_week ) this_week_services.add( service_data );
-					else next_week_services.add( service_data );
+					service_list.add( service_data );
 				}
 			}
 
@@ -133,8 +148,10 @@ class DataFetcher {
 			Collections.sort( next_week_services, SERVICE_COMPARATOR );
 
 
-			return new Data( org.getName(), this_sunday, this_week_services,
-				next_sunday, next_week_services );
+			return new Data( org.getName(),
+				this_sunday, this_week_services,
+				next_sunday, next_week_services,
+				two_weeks_sunday, two_weeks_services );
 		}
 		catch( Exception ex ) {
 			ex.printStackTrace();
@@ -147,15 +164,15 @@ class DataFetcher {
 	 * Return the set of date string for the desired week (this or next) in the form
 	 * to match the format of {@link net.stratfordpark.pco.api.Plan#dates}
 	 */
-	private Date computeSundayDate( boolean this_week ) {
+	private Date computeSundayDate( int weeks_away ) {
 		calendar.setTimeInMillis( System.currentTimeMillis() );
 
 		while( calendar.get( Calendar.DAY_OF_WEEK ) != Calendar.SUNDAY ) {
 			calendar.add( Calendar.DAY_OF_WEEK, 1 );
 		}
 
-		if ( !this_week ) {
-			calendar.add( Calendar.WEEK_OF_YEAR, 1 );
+		if ( weeks_away != 0 ) {
+			calendar.add( Calendar.WEEK_OF_YEAR, weeks_away );
 		}
 
 		return calendar.getTime();

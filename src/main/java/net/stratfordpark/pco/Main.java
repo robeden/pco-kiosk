@@ -28,7 +28,7 @@ public class Main {
 	private static final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
 
 
-	private static final AtomicBoolean invert_colors = new AtomicBoolean( false );
+	private static final AtomicBoolean invert_colors = new AtomicBoolean( true );
 
 
 	public static void main(String[] args) throws Exception {
@@ -110,9 +110,13 @@ public class Main {
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
 		writer.println( "    <style>" );
 		if ( invert_colors.get() ) {
-			writer.println( "    .container-fluid {" );
-			writer.println( "      color: #FFF;" );
-			writer.println( "      background-color: #000;" );
+			writer.println( "    body {" );
+			writer.println( "      color: #FFF !important;" );
+			writer.println( "      background-color: #000 !important;" );
+			writer.println( "    }" );
+
+			writer.println( "    .warning {" );
+			writer.println( "      background-color: #3A3100 !important;" );
 			writer.println( "    }" );
 		}
 		///////
@@ -141,7 +145,6 @@ public class Main {
 			buildServiceBlock( service_data, columns, writer );
 		}
 		writer.println( "    </div>" );
-
 		writer.println( "    <hr>" );
 
 
@@ -153,7 +156,22 @@ public class Main {
 		for( ServiceData service_data : data.getNextWeekServices() ) {
 			buildServiceBlock( service_data, columns, writer );
 		}
-		writer.println( "      </div>" );
+		writer.println( "    </div>" );
+		writer.println( "    <hr>" );
+
+
+		writer.println( "    <h2>Two Weeks <small>" +
+			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2>" );
+		writer.println( "    <div class=\"week row\">" );
+
+		columns = determineGridColumns( data.getTwoWeeksServices().size() );
+		for( ServiceData service_data : data.getTwoWeeksServices() ) {
+			buildServiceBlock( service_data, columns, writer );
+		}
+		writer.println( "    </div>" );
+
+
+
 		writer.println( "    </div>" );
 		writer.println( "  </body>" );
 		writer.println( "</html>" );
