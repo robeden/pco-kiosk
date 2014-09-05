@@ -3,10 +3,7 @@ package net.stratfordpark.pco;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import net.stratfordpark.pco.api.Organization;
-import net.stratfordpark.pco.api.Plan;
-import net.stratfordpark.pco.api.PlanPerson;
-import net.stratfordpark.pco.api.ServiceType;
+import net.stratfordpark.pco.api.*;
 import org.scribe.model.OAuthRequest;
 import org.scribe.model.Response;
 import org.scribe.model.Token;
@@ -93,6 +90,7 @@ class DataFetcher {
 						new TreeMap<>();
 
 
+					// People
 					for( PlanPerson person : plan.getPlanPeople() ) {
 						// Only want confirmed or unconfirmed (not declined)
 						if ( !person.getStatus().startsWith( "C" ) &&
@@ -106,6 +104,20 @@ class DataFetcher {
 						}
 
 						list.add( new ServiceData.Volunteer( person.getPersonName() ) );
+					}
+
+					// Open positions
+					if ( plan.getOpenPositions() != null ) {
+						for ( Position position : plan.getOpenPositions() ) {
+							List<ServiceData.NeedOrVolunteer> list =
+								volunteer_map.get( position.getName() );
+							if ( list == null ) {
+								list = new LinkedList<>();
+								volunteer_map.put( position.getName(), list );
+							}
+
+							list.add( new ServiceData.Need( position.getQuantity() ) );
+						}
 					}
 
 

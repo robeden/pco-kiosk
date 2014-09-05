@@ -104,17 +104,25 @@ public class Main {
 		writer.println( "<!DOCTYPE html>" );
 		writer.println( "<html>" );
 		writer.println( "  <head>" );
+		writer.println( "    <title>Volunteer Schedules</title>" );
 		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
 			"href=\"bootstrap.min.css\"/>" );
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
+		writer.println( "    <style>" );
 		if ( invert_colors.get() ) {
-			writer.println( "    <style>" );
 			writer.println( "    .container-fluid {" );
 			writer.println( "      color: #FFF;" );
 			writer.println( "      background-color: #000;" );
 			writer.println( "    }" );
-			writer.println( "    </style>" );
 		}
+		///////
+//		writer.println( "      body {" );
+//		writer.println( "        background-image: url('logo.png');" );
+//		writer.println( "        background-position: center;" );
+//		writer.println( "        background-repeat: no-repeat;" );
+//		writer.println( "      }" );
+		///////
+		writer.println( "    </style>" );
 		writer.println( "</head>" );
 
 		writer.println( "  <body>" );

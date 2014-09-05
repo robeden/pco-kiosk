@@ -27,7 +27,7 @@ public class Plan {
 	private final List<String> plan_notes;
 	private final List<PlanPerson> plan_people;
 	private final List<PlanItem> items;
-//	private final List<String> positions;
+	@SerializedName( "positions" ) private final List<Position> open_positions;
 	private final List<ServiceTime> service_times;
 	private final List<ServiceTime> rehearsal_times;
 	private final List<ServiceTime> other_times;
@@ -38,7 +38,7 @@ public class Plan {
 		ServiceType service_type, int total_length, String total_length_formatted,
 		String comma_separated_attachment_type_ids,
 		List<String> plan_notes, List<PlanPerson> plan_people,
-		List<PlanItem> items, //List<String> positions,
+		List<PlanItem> items, List<Position> open_positions,
 		List<ServiceTime> service_times, List<ServiceTime> rehearsal_times,
 		List<ServiceTime> other_times ) {
 		this.id = id;
@@ -59,7 +59,7 @@ public class Plan {
 		this.plan_notes = plan_notes;
 		this.plan_people = plan_people;
 		this.items = items;
-//		this.positions = positions;
+		this.open_positions = open_positions;
 		this.service_times = service_times;
 		this.rehearsal_times = rehearsal_times;
 		this.other_times = other_times;
@@ -138,9 +138,9 @@ public class Plan {
 		return items;
 	}
 
-//	public List<String> getPositions() {
-//		return positions;
-//	}
+	public List<Position> getOpenPositions() {
+		return open_positions;
+	}
 
 	public List<ServiceTime> getServiceTimes() {
 		return service_times;
@@ -178,7 +178,7 @@ public class Plan {
 			", plan_notes=" + plan_notes +
 			", plan_people=" + plan_people +
 			", items=" + items +
-//			", positions=" + positions +
+			", open_positions=" + open_positions +
 			", service_times=" + service_times +
 			", rehearsal_times=" + rehearsal_times +
 			", other_times=" + other_times +
