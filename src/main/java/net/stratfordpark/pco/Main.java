@@ -28,7 +28,7 @@ public class Main {
 	private static final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
 
 
-	private static final AtomicBoolean invert_colors = new AtomicBoolean( true );
+	private static final AtomicBoolean invert_colors = new AtomicBoolean( false );
 
 
 	public static void main(String[] args) throws Exception {
