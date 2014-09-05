@@ -146,6 +146,7 @@ class DataFetcher {
 
 			Collections.sort( this_week_services, SERVICE_COMPARATOR );
 			Collections.sort( next_week_services, SERVICE_COMPARATOR );
+			Collections.sort( two_weeks_services, SERVICE_COMPARATOR );
 
 
 			return new Data( org.getName(),
