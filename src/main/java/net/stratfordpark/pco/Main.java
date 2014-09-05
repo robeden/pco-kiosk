@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static spark.Spark.get;
@@ -25,6 +26,9 @@ import static spark.SparkBase.staticFileLocation;
 public class Main {
 	private static final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMMM d" );
 	private static final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
+
+
+	private static final AtomicBoolean invert_colors = new AtomicBoolean( false );
 
 
 	public static void main(String[] args) throws Exception {
@@ -82,6 +86,14 @@ public class Main {
 				}
 			}
 		}, 0, update_period );
+
+		// Color inverter
+		timer.schedule( new TimerTask() {
+			@Override
+			public void run() {
+				invert_colors.set( !invert_colors.get() );
+			}
+		}, TimeUnit.MINUTES.toMillis( 30 ), TimeUnit.MINUTES.toMillis( 30 ) );
 	}
 
 
@@ -94,6 +106,15 @@ public class Main {
 		writer.println( "  <head>" );
 		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
 			"href=\"bootstrap.min.css\"/>" );
+		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
+		if ( invert_colors.get() ) {
+			writer.println( "    <style>" );
+			writer.println( "    .container-fluid {" );
+			writer.println( "      color: #FFF;" );
+			writer.println( "      background-color: #000;" );
+			writer.println( "    }" );
+			writer.println( "    </style>" );
+		}
 		writer.println( "</head>" );
 
 		writer.println( "  <body>" );
