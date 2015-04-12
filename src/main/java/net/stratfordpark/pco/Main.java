@@ -18,9 +18,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static spark.Spark.get;
-import static spark.SparkBase.setPort;
-import static spark.SparkBase.staticFileLocation;
+import static spark.Spark.*;
 
 
 public class Main {
@@ -50,8 +48,9 @@ public class Main {
 
 		final AtomicReference<Data> data_slot = new AtomicReference<>();
 
+		externalStaticFileLocation( "css" );
+//		staticFileLocation( "/css" );
 		setPort( port );
-		staticFileLocation( "/css" );
 
 		get( "/", new Route() {
 			@Override
@@ -93,7 +92,7 @@ public class Main {
 			public void run() {
 				invert_colors.set( !invert_colors.get() );
 			}
-		}, TimeUnit.MINUTES.toMillis( 30 ), TimeUnit.MINUTES.toMillis( 30 ) );
+		}, TimeUnit.MINUTES.toMillis( 10 ), TimeUnit.MINUTES.toMillis( 10 ) );
 	}
 
 
@@ -107,29 +106,34 @@ public class Main {
 		writer.println( "    <title>Volunteer Schedules</title>" );
 		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
 			"href=\"bootstrap.min.css\"/>" );
+		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
+			"href=\"style.css\"/>" );
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
-		writer.println( "    <style>" );
-		if ( invert_colors.get() ) {
-			writer.println( "    body {" );
-			writer.println( "      color: #FFF !important;" );
-			writer.println( "      background-color: #000 !important;" );
-			writer.println( "    }" );
-
-			writer.println( "    .warning {" );
-			writer.println( "      background-color: #3A3100 !important;" );
-			writer.println( "    }" );
-		}
-		///////
-//		writer.println( "      body {" );
-//		writer.println( "        background-image: url('logo.png');" );
-//		writer.println( "        background-position: center;" );
-//		writer.println( "        background-repeat: no-repeat;" );
-//		writer.println( "      }" );
-		///////
-		writer.println( "    </style>" );
+//		writer.println( "    <style>" );
+//		if ( invert_colors.get() ) {
+//			writer.println( "    body {" );
+//			writer.println( "      color: #FFF !important;" );
+//			writer.println( "      background-color: #000 !important;" );
+//			writer.println( "    }" );
+//
+//			writer.println( "    .warning {" );
+//			writer.println( "      background-color: #3A3100 !important;" );
+//			writer.println( "    }" );
+//		}
+//		///////
+////		writer.println( "      body {" );
+////		writer.println( "        background-image: url('logo.png');" );
+////		writer.println( "        background-position: center;" );
+////		writer.println( "        background-repeat: no-repeat;" );
+////		writer.println( "      }" );
+//		///////
+//		writer.println( "    </style>" );
 		writer.println( "</head>" );
 
-		writer.println( "  <body>" );
+		if ( invert_colors.get() ) writer.println( "  <body class=\"inverted\">" );
+		else writer.println( "  <body>" );
+
+
 		writer.println( "    <div class=\"container-fluid\">" );
 		writer.println( "    <div class=\"page-header\">" );
 		writer.println( "      <h1>Volunteer Schedules <small>" + data.getOrgName() +

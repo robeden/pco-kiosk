@@ -15,4 +15,20 @@ dependencies {
 
 jar {
     baseName 'pco-kiosk'
+    manifest {
+        attributes("Main-Class": "net.stratfordpark.pco.Main" )
+    }
+}
+
+
+task saveLibs(type: Sync) {
+    from configurations.runtime
+    into "$buildDir/libs/dependencies"
+}
+jar.dependsOn saveLibs
+
+
+
+wrapper {
+    gradleVersion = '2.3'
 }

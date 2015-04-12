@@ -1,0 +1,22 @@
+body:not(.inverted) {
+    color: #000 !important;
+    background-color: #FFF !important;
+
+    background-image: url("logo.png");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+body.inverted {
+    color: #FFF !important;
+    background-color: #000 !important;
+}
+
+
+.warning .inverted {
+    background-color: #5E4F00 !important;
+}
+
+.warning:not(.inverted) {
+    background-color: #BFAA38 !important;
+}
