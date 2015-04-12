@@ -87,7 +87,7 @@ public class Main {
 //			}
 //		} );
 
-		get( "/", new Route() {
+		get( new Route( "/" ) {
 			@Override
 			public Object handle( Request request, spark.Response response ) {
 				Data data = data_slot.get();
