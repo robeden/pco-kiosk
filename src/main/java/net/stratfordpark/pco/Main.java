@@ -144,25 +144,6 @@ public class Main {
 		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
 			"href=\"style.css\"/>" );
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
-//		writer.println( "    <style>" );
-//		if ( invert_colors.get() ) {
-//			writer.println( "    body {" );
-//			writer.println( "      color: #FFF !important;" );
-//			writer.println( "      background-color: #000 !important;" );
-//			writer.println( "    }" );
-//
-//			writer.println( "    .warning {" );
-//			writer.println( "      background-color: #3A3100 !important;" );
-//			writer.println( "    }" );
-//		}
-//		///////
-////		writer.println( "      body {" );
-////		writer.println( "        background-image: url('logo.png');" );
-////		writer.println( "        background-position: center;" );
-////		writer.println( "        background-repeat: no-repeat;" );
-////		writer.println( "      }" );
-//		///////
-//		writer.println( "    </style>" );
 		writer.println( "</head>" );
 
 		if ( invert_colors.get() ) writer.println( "  <body class=\"inverted\">" );
@@ -175,43 +156,36 @@ public class Main {
 			"</small></h1>" );
 		writer.println( "    </div>" );
 
-		writer.println( "    <h2>This Week <small>" +
-			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2>" );
-		writer.println( "    <div class=\"week row\">" );
 
 		int columns = determineGridColumns( data.getThisWeekServices().size() );
+		writer.println( "    <div class=\"col-md-" + columns + " week-column\">" );
+		writer.println( "      <h2>This Week <small>" +
+			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2>" );
 		for( ServiceData service_data : data.getThisWeekServices() ) {
 			buildServiceBlock( service_data, columns, writer );
 		}
 		writer.println( "    </div>" );
-		writer.println( "    <hr>" );
 
 
-		writer.println( "    <h2>Next Week <small>" +
+
+		writer.println( "    <div class=\"col-md-" + columns + " week-column\">" );
+		writer.println( "      <h2>Next Week <small>" +
 			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2>" );
-		writer.println( "    <div class=\"week row\">" );
-
-		columns = determineGridColumns( data.getNextWeekServices().size() );
 		for( ServiceData service_data : data.getNextWeekServices() ) {
 			buildServiceBlock( service_data, columns, writer );
 		}
 		writer.println( "    </div>" );
-		writer.println( "    <hr>" );
 
 
-		writer.println( "    <h2>Two Weeks <small>" +
+
+		writer.println( "    <div class=\"col-md-" + columns + " week-column\">" );
+		writer.println( "      <h2>Two Weeks <small>" +
 			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2>" );
-		writer.println( "    <div class=\"week row\">" );
-
-		columns = determineGridColumns( data.getTwoWeeksServices().size() );
 		for( ServiceData service_data : data.getTwoWeeksServices() ) {
 			buildServiceBlock( service_data, columns, writer );
 		}
 		writer.println( "    </div>" );
 
-
-
-		writer.println( "    </div>" );
 		writer.println( "  </body>" );
 		writer.println( "</html>" );
 
@@ -222,8 +196,7 @@ public class Main {
 	private static void buildServiceBlock( ServiceData data, int columns,
 		PrintWriter writer ) {
 
-		writer.println( "      <div class=\"col-md-" + columns + "\">" );
-		writer.println( "        <h3>" + data.getName() + " <small>" +
+		writer.println( "        <h3 style=\"margin-top: 2em\">" + data.getName() + " <small>" +
 			TIME_DATE_FORMAT.format( data.getStartDate() ) + "</small></h3>" );
 		writer.println( "        <table class=\"table\">" );
 		for( Map.Entry<String,List<ServiceData.NeedOrVolunteer>> entry :
@@ -251,7 +224,6 @@ public class Main {
 		}
 
 		writer.println( "        </table>" );
-		writer.println( "      </div>" );
 	}
 
 

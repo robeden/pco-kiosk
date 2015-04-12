@@ -12,6 +12,15 @@ body.inverted {
     background-color: #000 !important;
 }
 
+.week-column {
+    padding: 0 20px 0 20px;
+}
+
+
+h2 {
+    padding-bottom: 15px;
+}
+
 
 .warning .inverted {
     background-color: #5E4F00 !important;
