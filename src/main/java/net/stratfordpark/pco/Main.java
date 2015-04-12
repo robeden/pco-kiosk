@@ -5,6 +5,7 @@ import org.scribe.model.Token;
 import org.scribe.oauth.OAuthService;
 import spark.Request;
 import spark.Route;
+import spark.Spark;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -18,7 +19,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static spark.Spark.*;
+import static spark.Spark.get;
+import static spark.Spark.setPort;
 
 
 public class Main {
@@ -48,9 +50,42 @@ public class Main {
 
 		final AtomicReference<Data> data_slot = new AtomicReference<>();
 
-		externalStaticFileLocation( "css" );
-//		staticFileLocation( "/css" );
+//		externalStaticFileLocation( "css" );
+		Spark.staticFileLocation( "/css" );
 		setPort( port );
+
+//		get( "/css/:file", new Route() {
+//			@Override
+//			public Object handle( Request request, Response response ) {
+//				response.type( "text/css" );
+//				System.out.println( "File: " + request.params( ":file" ) );
+//				InputStream in = Main.class.getClass().getResourceAsStream( "/css/" +
+//					request.params( ":file" ) );
+//				if ( in == null ) {
+//					response.status( 404 );
+//					return "File not found: " + request.params( ":file" );
+//				}
+//				try {
+//					IOUtils.copy( in, response.raw().getWriter() );
+//				}
+//				catch( IOException ex ) {
+//					ex.printStackTrace();
+//					response.status( 500 );
+//					return ex;
+//				}
+//				finally {
+//					try {
+//						in.close();
+//					}
+//					catch ( IOException e ) {
+//						// ignore
+//					}
+//				}
+//				return null;
+////				response.raw().getOutputStream()
+////				return
+//			}
+//		} );
 
 		get( "/", new Route() {
 			@Override
