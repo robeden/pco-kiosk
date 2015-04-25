@@ -21,7 +21,7 @@ Note that in order to run you will need OAuth keys obtained from PCO. See the [A
 
 ## More Info ##
 
-For more instructions, including settings for setting up a Raspberry Pi kiosk, see [the wiki](https://bitbucket.org/robeden/pco-kiosk/wiki/).
+For more instructions, including how to setup a Raspberry Pi kiosk, see [the wiki](https://bitbucket.org/robeden/pco-kiosk/wiki/).
 
 
 ## Problems or Ideas ##
