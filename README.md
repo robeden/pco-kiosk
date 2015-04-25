@@ -26,4 +26,4 @@ For more instructions, including settings for setting up a Raspberry Pi kiosk, s
 
 ## Problems or Ideas ##
 
-Admittedly, the code is very rigid to suit my current needs. Problem reports or feature suggestions are always welcome via [the issues page](https://bitbucket.org/robeden/pco-kiosk/issues), email (robeden1 at gmail dot com) or twitter (RobEden).
+Admittedly, the code is currently very rigid to suit my current needs. Problem reports or feature suggestions are always welcome via [the issues page](https://bitbucket.org/robeden/pco-kiosk/issues), email (robeden1 at gmail dot com) or twitter (RobEden).
