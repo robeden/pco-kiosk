@@ -4,8 +4,7 @@ The PCO Kiosk is a simple application to display upcoming assignments from Plann
 
 ![Example kiosk](https://bitbucket.org/repo/xrjqyX/images/691354340-final.jpg)
 
-
-**Features**
+## Features ##
 
 * Display three weeks of upcoming schedules for multiple services
 * Needed positions are highlighted
@@ -13,16 +12,18 @@ The PCO Kiosk is a simple application to display upcoming assignments from Plann
     * ...except without 30 minutes of service hours, to keep it pretty
 
 
-**Building**
+## Building ##
 
 To build from source, simply run `./gradlew` on Mac/Linux or `gradlew.bat` on Windows.
 
+Note that in order to run you will need OAuth keys obtained from PCO. See the [API documentation](http://get.planningcenteronline.com/api) for more information.
 
-**More Info**
+
+## More Info ##
 
 For more instructions, including settings for setting up a Raspberry Pi kiosk, see [the wiki](https://bitbucket.org/robeden/pco-kiosk/wiki/).
 
 
-**Problems or Ideas**
+## Problems or Ideas ##
 
 Admittedly, the code is very rigid to suit my current needs. Problem reports or feature suggestions are always welcome via [the issues page](https://bitbucket.org/robeden/pco-kiosk/issues), email (robeden1 at gmail dot com) or twitter (RobEden).
