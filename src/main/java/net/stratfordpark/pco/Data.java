@@ -7,6 +7,8 @@ import java.util.List;
  *
  */
 class Data {
+	private final long fetch_duration;
+
 	private final String org_name;
 
 	private final Date this_week_date;
@@ -18,11 +20,12 @@ class Data {
 	private final Date two_weeks_date;
 	private final List<ServiceData> two_weeks_services;
 
-	Data( String org_name,
+	Data( long fetch_duration, String org_name,
 		Date this_week_date, List<ServiceData> this_week_services,
 		Date next_week_date, List<ServiceData> next_week_services,
 		Date two_weeks_date, List<ServiceData> two_weeks_services ) {
 
+		this.fetch_duration = fetch_duration;
 		this.org_name = org_name;
 		this.this_week_date = this_week_date;
 		this.this_week_services = this_week_services;
@@ -59,5 +62,9 @@ class Data {
 
 	public List<ServiceData> getTwoWeeksServices() {
 		return two_weeks_services;
+	}
+
+	public long getFetchDuration() {
+		return fetch_duration;
 	}
 }

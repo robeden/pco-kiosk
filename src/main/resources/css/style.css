@@ -21,11 +21,20 @@ h2 {
     padding-bottom: 15px;
 }
 
+.page-header {
+    margin-bottom: 50px;
+}
 
-.warning .inverted {
+
+.inverted .warning  {
     background-color: #5E4F00 !important;
 }
 
-.warning:not(.inverted) {
-    background-color: #BFAA38 !important;
+body:not(.inverted) .warning {
+    background-color: #d2ca72 !important;
+}
+
+
+.inverted small  {
+    color: #999 !important;
 }

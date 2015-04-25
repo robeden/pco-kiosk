@@ -45,119 +45,132 @@ class DataFetcher {
 
 
 
-	Data fetchData() {
-		try {
-			Organization org =
-				fetch( "https://www.planningcenteronline.com/organization.json",
-				Organization.class );
+	Data fetchData() throws Exception {
+		long fetch_start = System.currentTimeMillis();
+		Organization org =
+			fetch( "https://www.planningcenteronline.com/organization.json",
+			Organization.class );
+		long fetch_duration = System.currentTimeMillis() - fetch_start;
 
-			Date this_sunday = computeSundayDate( 0 );
-			String this_sunday_string = DATE_FORMAT.format( this_sunday );
+		Date this_sunday = computeSundayDate( 0 );
+		String this_sunday_string = DATE_FORMAT.format( this_sunday );
 
-			Date next_sunday = computeSundayDate( 1 );
-			String next_sunday_string = DATE_FORMAT.format( next_sunday );
+		Date next_sunday = computeSundayDate( 1 );
+		String next_sunday_string = DATE_FORMAT.format( next_sunday );
 
-			Date two_weeks_sunday = computeSundayDate( 2 );
-			String two_weeks_sunday_string = DATE_FORMAT.format( two_weeks_sunday );
+		Date two_weeks_sunday = computeSundayDate( 2 );
+		String two_weeks_sunday_string = DATE_FORMAT.format( two_weeks_sunday );
 
-			List<ServiceData> this_week_services = new ArrayList<>();
-			List<ServiceData> next_week_services = new ArrayList<>();
-			List<ServiceData> two_weeks_services = new ArrayList<>();
+		List<ServiceData> this_week_services = new ArrayList<>();
+		List<ServiceData> next_week_services = new ArrayList<>();
+		List<ServiceData> two_weeks_services = new ArrayList<>();
 
-			for( ServiceType service_type : org.getServiceTypes() ) {
-				Type collection_type = new TypeToken<List<Plan>>(){}.getType();
-				List<Plan> plans =
-					fetch( "https://www.planningcenteronline.com/service_types/" +
-					service_type.getId() + "/plans.json", collection_type );
+		for( ServiceType service_type : org.getServiceTypes() ) {
+			Type collection_type = new TypeToken<List<Plan>>(){}.getType();
+			List<Plan> plans =
+				fetch( "https://www.planningcenteronline.com/service_types/" +
+				service_type.getId() + "/plans.json", collection_type );
 
-				for( Plan plan : plans ) {
-					Date matching_sunday = null;
-					List<ServiceData> service_list = null;
+			for( Plan plan : plans ) {
+				Date matching_sunday = null;
+				List<ServiceData> service_list = null;
 
-					if ( this_sunday_string.equals( plan.getDates() ) ) {
-						matching_sunday = this_sunday;
-						service_list = this_week_services;
+				if ( this_sunday_string.equals( plan.getDates() ) ) {
+					matching_sunday = this_sunday;
+					service_list = this_week_services;
+				}
+				else if ( next_sunday_string.equals( plan.getDates() ) ) {
+					matching_sunday = next_sunday;
+					service_list = next_week_services;
+				}
+				else if ( two_weeks_sunday_string.equals( plan.getDates() ) ) {
+					matching_sunday = two_weeks_sunday;
+					service_list = two_weeks_services;
+				}
+
+				if ( matching_sunday == null ) continue;
+
+				// We get more information when making a specific request for the plan
+				plan = fetch( "https://www.planningcenteronline.com/plans/" +
+					plan.getId() + ".json", Plan.class );
+
+				String series_title = plan.getSeriesTitle();
+				String plan_title = plan.getPlanTitle();
+
+				int length = plan.getTotalLength();
+
+				Date start_time;
+				if ( plan.getServiceTimes() != null &&
+					!plan.getServiceTimes().isEmpty() ) {
+
+					start_time = plan.getServiceTimes().get( 0 ).getStartsAt();
+				}
+				else start_time = matching_sunday;
+
+
+				SortedMap<String, List<ServiceData.NeedOrVolunteer>> volunteer_map =
+					new TreeMap<>();
+
+
+				// People
+				for( PlanPerson person : plan.getPlanPeople() ) {
+					// Only want confirmed or unconfirmed (not declined)
+					if ( !person.getStatus().startsWith( "C" ) &&
+						!person.getStatus().startsWith( "U" ) ) continue;
+
+					List<ServiceData.NeedOrVolunteer> list =
+						volunteer_map.get( person.getPosition() );
+					if ( list == null ) {
+						list = new LinkedList<>();
+						volunteer_map.put( person.getPosition(), list );
 					}
-					else if ( next_sunday_string.equals( plan.getDates() ) ) {
-						matching_sunday = next_sunday;
-						service_list = next_week_services;
-					}
-					else if ( two_weeks_sunday_string.equals( plan.getDates() ) ) {
-						matching_sunday = two_weeks_sunday;
-						service_list = two_weeks_services;
-					}
 
-					if ( matching_sunday == null ) continue;
+					list.add( new ServiceData.Volunteer( person.getPersonName() ) );
+				}
 
-					// We get more information when making a specific request for the plan
-					plan = fetch( "https://www.planningcenteronline.com/plans/" +
-						plan.getId() + ".json", Plan.class );
-
-					Date start_time;
-					if ( plan.getServiceTimes() != null &&
-						!plan.getServiceTimes().isEmpty() ) {
-
-						start_time = plan.getServiceTimes().get( 0 ).getStartsAt();
-					}
-					else start_time = matching_sunday;
-
-
-					SortedMap<String, List<ServiceData.NeedOrVolunteer>> volunteer_map =
-						new TreeMap<>();
-
-
-					// People
-					for( PlanPerson person : plan.getPlanPeople() ) {
-						// Only want confirmed or unconfirmed (not declined)
-						if ( !person.getStatus().startsWith( "C" ) &&
-							!person.getStatus().startsWith( "U" ) ) continue;
-
+				// Open positions
+				if ( plan.getOpenPositions() != null ) {
+					for ( Position position : plan.getOpenPositions() ) {
 						List<ServiceData.NeedOrVolunteer> list =
-							volunteer_map.get( person.getPosition() );
+							volunteer_map.get( position.getName() );
 						if ( list == null ) {
 							list = new LinkedList<>();
-							volunteer_map.put( person.getPosition(), list );
+							volunteer_map.put( position.getName(), list );
 						}
 
-						list.add( new ServiceData.Volunteer( person.getPersonName() ) );
+						list.add( new ServiceData.Need( position.getQuantity() ) );
 					}
-
-					// Open positions
-					if ( plan.getOpenPositions() != null ) {
-						for ( Position position : plan.getOpenPositions() ) {
-							List<ServiceData.NeedOrVolunteer> list =
-								volunteer_map.get( position.getName() );
-							if ( list == null ) {
-								list = new LinkedList<>();
-								volunteer_map.put( position.getName(), list );
-							}
-
-							list.add( new ServiceData.Need( position.getQuantity() ) );
-						}
-					}
-
-
-					ServiceData service_data = new ServiceData( service_type.getName(),
-						start_time, volunteer_map );
-
-					service_list.add( service_data );
 				}
+
+
+				List<ServiceTime> service_times = plan.getServiceTimes();
+				long[] start_times = new long[ service_times.size() ];
+				long[] end_times = new long[ service_times.size() ];
+				for( int i = 0; i < service_times.size(); i++ ) {
+					ServiceTime service_time = service_times.get( i );
+
+					start_times[ i ] = service_time.getStartsAt().getTime();
+					end_times[ i ] = service_time.getStartsAt().getTime();
+				}
+
+
+				ServiceData service_data = new ServiceData( service_type.getName(),
+					start_time, volunteer_map, plan_title, series_title,
+					start_times, end_times );
+
+				service_list.add( service_data );
 			}
-
-			Collections.sort( this_week_services, SERVICE_COMPARATOR );
-			Collections.sort( next_week_services, SERVICE_COMPARATOR );
-			Collections.sort( two_weeks_services, SERVICE_COMPARATOR );
-
-
-			return new Data( org.getName(),
-				this_sunday, this_week_services,
-				next_sunday, next_week_services,
-				two_weeks_sunday, two_weeks_services );
 		}
-		catch( Exception ex ) {
-			ex.printStackTrace();
-			return null;
-		}
+
+		Collections.sort( this_week_services, SERVICE_COMPARATOR );
+		Collections.sort( next_week_services, SERVICE_COMPARATOR );
+		Collections.sort( two_weeks_services, SERVICE_COMPARATOR );
+
+
+		return new Data( fetch_duration, org.getName(),
+			this_sunday, this_week_services,
+			next_sunday, next_week_services,
+			two_weeks_sunday, two_weeks_services );
 	}
 
 
