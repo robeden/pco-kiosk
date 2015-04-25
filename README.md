@@ -21,3 +21,8 @@ To build from source, simply run `./gradlew` on Mac/Linux or `gradlew.bat` on Wi
 **More Info**
 
 For more instructions, including settings for setting up a Raspberry Pi kiosk, see [the wiki](https://bitbucket.org/robeden/pco-kiosk/wiki/).
+
+
+**Problems or Ideas**
+
+Admittedly, the code is very rigid to suit my current needs. Problem reports or feature suggestions are always welcome via [the issues page](https://bitbucket.org/robeden/pco-kiosk/issues), email (robeden1 at gmail dot com) or twitter (@RobEden).
