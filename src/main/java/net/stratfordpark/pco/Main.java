@@ -182,7 +182,7 @@ public class Main {
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
 		writer.println( "</head>" );
 
-		if ( true ) {//!inside_service_times && INVERT_COLORS.get() ) {
+		if ( !inside_service_times && INVERT_COLORS.get() ) {
 			writer.println( "  <body class=\"inverted\">" );
 		}
 		else writer.println( "  <body>" );
