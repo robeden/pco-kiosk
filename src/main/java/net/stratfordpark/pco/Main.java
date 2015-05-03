@@ -199,7 +199,7 @@ public class Main {
 
 		List<ServiceData> this_week = data.getThisWeekServices();
 		List<ServiceData> next_week = data.getNextWeekServices();
-		List<ServiceData> two_week = data.getTwoWeekServices();
+		List<ServiceData> two_week = data.getTwoWeeksServices();
 
 		// TODO: this is assuming the same services are used every week. It won't explode
 		//       if there's a different number, but things might not line up correctly
