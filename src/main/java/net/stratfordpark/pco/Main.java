@@ -198,7 +198,7 @@ public class Main {
 		writer.println( "    </div>" );
 
 
-		int columns = determineGridColumns( data.getThisWeekServices().size() );
+		final int columns = 4;
 
 		List<ServiceData> this_week = data.getThisWeekServices();
 		List<ServiceData> next_week = data.getNextWeekServices();
@@ -365,25 +365,6 @@ public class Main {
 			"\t\t</div>\n" +
 			"\t</body>\n" +
 			"</html>";
-	}
-
-
-	private static int determineGridColumns( int num_services ) {
-		switch( num_services ) {
-			case 1:
-				return 12;
-			case 2:
-				return 6;
-			case 3:
-				return 4;
-			case 4:
-				return 3;
-			case 5:
-			case 6:
-				return 2;
-			default:
-				return 1;
-		}
 	}
 
 
