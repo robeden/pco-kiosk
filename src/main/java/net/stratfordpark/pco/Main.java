@@ -14,10 +14,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -70,7 +67,13 @@ public class Main {
 					return createLoadingPage();
 				}
 
-				return buildMainPage( data );
+				try {
+					return buildMainPage( data );
+				}
+				catch( Exception ex ) {
+					ex.printStackTrace();
+					throw ex;
+				}
 			}
 		} );
 
@@ -182,7 +185,7 @@ public class Main {
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
 		writer.println( "</head>" );
 
-		if ( true ) {//!inside_service_times && INVERT_COLORS.get() ) {
+		if ( !inside_service_times && INVERT_COLORS.get() ) {
 			writer.println( "  <body class=\"inverted\">" );
 		}
 		else writer.println( "  <body>" );
@@ -195,11 +198,11 @@ public class Main {
 		writer.println( "    </div>" );
 
 
-		int columns = determineGridColumns( data.getThisWeekServices().size() );
+		final int columns = 4;
 
 		List<ServiceData> this_week = data.getThisWeekServices();
 		List<ServiceData> next_week = data.getNextWeekServices();
-		List<ServiceData> two_week = data.getThisWeekServices();
+		List<ServiceData> two_week = data.getTwoWeeksServices();
 
 		// TODO: this is assuming the same services are used every week. It won't explode
 		//       if there's a different number, but things might not line up correctly
@@ -220,28 +223,30 @@ public class Main {
 		writer.println( "      </div>" );
 		writer.println( "    </div>" );
 
-		int service_count = Math.max(
-			Math.max( this_week.size(), next_week.size() ), two_week.size() );
-		for( int i = 0; i < service_count; i++ ) {
+		List<String> service_names = pickServiceNames( this_week, next_week, two_week );
+		for( String service_name : service_names ) {
 			writer.println( "    <div class=\"row\">" );
 
+			// This week
 			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			if ( this_week.size() > i ) {
-				ServiceData service_data = this_week.get( i );
+			ServiceData service_data = findDataForName( this_week, service_name );
+			if ( service_data != null ) {
 				buildServiceBlock( service_data, columns, writer );
 			}
 			writer.println( "      </div>" );
 
+			// Next week
 			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			if ( this_week.size() > i ) {
-				ServiceData service_data = next_week.get( i );
+			service_data = findDataForName( next_week, service_name );
+			if ( service_data != null ) {
 				buildServiceBlock( service_data, columns, writer );
 			}
 			writer.println( "      </div>" );
 
+			// Two weeks
 			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			if ( this_week.size() > i ) {
-				ServiceData service_data = two_week.get( i );
+			service_data = findDataForName( two_week, service_name );
+			if ( service_data != null ) {
 				buildServiceBlock( service_data, columns, writer );
 			}
 			writer.println( "      </div>" );
@@ -253,6 +258,55 @@ public class Main {
 		writer.println( "</html>" );
 
 		return string_writer.toString();
+	}
+
+
+	private static ServiceData findDataForName( List<ServiceData> data_list, String name ) {
+		for( ServiceData data : data_list ) {
+			if ( name.equals( data.getName() ) ) return data;
+		}
+
+		return null;
+	}
+
+
+
+	/**
+	 * Generates a list of service names based off the longest service data list.
+	 * This assumes that are some point a particular service is skipped and allows lining
+	 * up the other services. Example: A, B, C -> A, C
+	 *
+	 * This will have trouble in the case where one type of service is exchanged for
+	 * another. Example: A, B, C -> A, D, C
+	 */
+	private static List<String> pickServiceNames( List<ServiceData>... data_lists ) {
+		// Two passes:
+		//   1) Pick the longest list
+		//   2) Make sure all services are included
+
+		List<String> to_return = Collections.emptyList();
+
+		// TODO: Java 8 could make this much prettier
+		for( List<ServiceData> data_list : data_lists ) {
+			if ( data_list.size() > to_return.size() ) {
+				to_return = new ArrayList<>( data_list.size() );
+				for( ServiceData data : data_list ) {
+					to_return.add( data.getName() );
+				}
+			}
+		}
+
+		// This is a fail-safe for the bad case to ensure all services are displayed
+		for( List<ServiceData> data_list : data_lists ) {
+			for( ServiceData data : data_list ) {
+				String name = data.getName();
+				if ( !to_return.contains( name ) ) {
+					to_return.add( name );
+				}
+			}
+		}
+
+		return to_return;
 	}
 
 
@@ -311,25 +365,6 @@ public class Main {
 			"\t\t</div>\n" +
 			"\t</body>\n" +
 			"</html>";
-	}
-
-
-	private static int determineGridColumns( int num_services ) {
-		switch( num_services ) {
-			case 1:
-				return 12;
-			case 2:
-				return 6;
-			case 3:
-				return 4;
-			case 4:
-				return 3;
-			case 5:
-			case 6:
-				return 2;
-			default:
-				return 1;
-		}
 	}
 
 
