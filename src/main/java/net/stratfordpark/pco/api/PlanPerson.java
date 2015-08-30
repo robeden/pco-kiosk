@@ -20,7 +20,7 @@ public class PlanPerson {
 	private final String person_name;
 	private final long responds_to_id;
 //	private final long excluded_times;
-	private final String notes;
+//	private final String notes;
 	private final String decline_reason;
 	private final boolean can_accept_partial;
 //	declined_time_ids": []
@@ -44,7 +44,7 @@ public class PlanPerson {
 		this.person_name = person_name;
 		this.responds_to_id = responds_to_id;
 //		this.excluded_times = excluded_times;
-		this.notes = notes;
+//		this.notes = notes;
 		this.decline_reason = decline_reason;
 		this.can_accept_partial = can_accept_partial;
 	}
@@ -97,9 +97,9 @@ public class PlanPerson {
 //		return excluded_times;
 //	}
 
-	public String getNotes() {
-		return notes;
-	}
+//	public String getNotes() {
+//		return notes;
+//	}
 
 	public String getDeclineReason() {
 		return decline_reason;

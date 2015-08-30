@@ -21,7 +21,7 @@ public class PlanItem {
 	private final boolean is_header;
 	private final boolean using_custom_slides;
 //	plan_item_medias": [],
-	private final List<String> plan_item_notes;
+//	private final List<String> plan_item_notes;
 //	plan_item_times": [],
 //	ccli_print_single": 0,
 //	ccli_print_collected": 0,
@@ -57,7 +57,7 @@ public class PlanItem {
 		this.is_postservice = is_postservice;
 		this.is_header = is_header;
 		this.using_custom_slides = using_custom_slides;
-		this.plan_item_notes = plan_item_notes;
+//		this.plan_item_notes = plan_item_notes;
 		this.song_id = song_id;
 		this.arrangement_id = arrangement_id;
 		this.key_id = key_id;
@@ -121,9 +121,9 @@ public class PlanItem {
 		return using_custom_slides;
 	}
 
-	public List<String> getPlanItemNotes() {
-		return plan_item_notes;
-	}
+//	public List<String> getPlanItemNotes() {
+//		return plan_item_notes;
+//	}
 
 	public Long getSongId() {
 		return song_id;
@@ -162,7 +162,7 @@ public class PlanItem {
 			", is_postservice=" + is_postservice +
 			", is_header=" + is_header +
 			", using_custom_slides=" + using_custom_slides +
-			", plan_item_notes=" + plan_item_notes +
+//			", plan_item_notes=" + plan_item_notes +
 			", song_id=" + song_id +
 			", arrangement_id=" + arrangement_id +
 			", key_id=" + key_id +

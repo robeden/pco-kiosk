@@ -14,7 +14,7 @@ public class Plan {
 	private final String series_title;
 	private final int service_type_id;
 	private final String dates;
-	private final long series;
+	private final Series series;
 	@SerializedName("public") private final boolean is_public;
 	private final Date updated_at;
 	private final Date created_at;
@@ -24,7 +24,7 @@ public class Plan {
 	private final int total_length;
 	private final String total_length_formatted;
 	private final String comma_separated_attachment_type_ids;
-	private final List<String> plan_notes;
+//	private final List<String> plan_notes;
 	private final List<PlanPerson> plan_people;
 	private final List<PlanItem> items;
 	@SerializedName( "positions" ) private final List<Position> open_positions;
@@ -33,7 +33,7 @@ public class Plan {
 	private final List<ServiceTime> other_times;
 
 	public Plan( long id, String plan_title, String series_title, int service_type_id,
-		String dates, long series, boolean is_public, Date updated_at,
+		String dates, Series series, boolean is_public, Date updated_at,
 		Date created_at, String type, String permissions,
 		ServiceType service_type, int total_length, String total_length_formatted,
 		String comma_separated_attachment_type_ids,
@@ -41,6 +41,7 @@ public class Plan {
 		List<PlanItem> items, List<Position> open_positions,
 		List<ServiceTime> service_times, List<ServiceTime> rehearsal_times,
 		List<ServiceTime> other_times ) {
+
 		this.id = id;
 		this.plan_title = plan_title;
 		this.series_title = series_title;
@@ -56,7 +57,7 @@ public class Plan {
 		this.total_length = total_length;
 		this.total_length_formatted = total_length_formatted;
 		this.comma_separated_attachment_type_ids = comma_separated_attachment_type_ids;
-		this.plan_notes = plan_notes;
+//		this.plan_notes = plan_notes;
 		this.plan_people = plan_people;
 		this.items = items;
 		this.open_positions = open_positions;
@@ -86,7 +87,7 @@ public class Plan {
 		return dates;
 	}
 
-	public long getSeries() {
+	public Series getSeries() {
 		return series;
 	}
 
@@ -126,9 +127,9 @@ public class Plan {
 		return comma_separated_attachment_type_ids;
 	}
 
-	public List<String> getPlanNotes() {
-		return plan_notes;
-	}
+//	public List<String> getPlanNotes() {
+//		return plan_notes;
+//	}
 
 	public List<PlanPerson> getPlanPeople() {
 		return plan_people;
@@ -175,7 +176,7 @@ public class Plan {
 			", comma_separated_attachment_type_ids='" +
 			comma_separated_attachment_type_ids +
 			'\'' +
-			", plan_notes=" + plan_notes +
+//			", plan_notes=" + plan_notes +
 			", plan_people=" + plan_people +
 			", items=" + items +
 			", open_positions=" + open_positions +
