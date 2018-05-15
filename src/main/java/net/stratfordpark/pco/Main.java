@@ -1,13 +1,9 @@
 package net.stratfordpark.pco;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import org.scribe.builder.ServiceBuilder;
-import org.scribe.model.Token;
-import org.scribe.oauth.OAuthService;
-import spark.Request;
-import spark.Response;
-import spark.Route;
+import com.squareup.moshi.Moshi;
+import com.squareup.moshi.Rfc3339DateJsonAdapter;
+import okhttp3.Credentials;
+import okhttp3.OkHttpClient;
 import spark.Spark;
 
 import java.io.PrintWriter;
@@ -21,7 +17,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static spark.Spark.get;
-import static spark.Spark.setPort;
+import static spark.Spark.port;
 
 
 public class Main {
@@ -33,10 +29,10 @@ public class Main {
 	private static final AtomicBoolean INVERT_COLORS = new AtomicBoolean( false );
 
 
-	public static void main(String[] args) throws Exception {
-		if ( args.length < 4 ) {
+	public static void main(String[] args) {
+		if ( args.length < 2 ) {
 			System.out.println(
-				"Usage: <api_key> <api_secret> <access_key> <access_secret>" );
+				"Usage: <api_key> <api_secret>" );
 			System.exit( -1 );
 			return;
 		}
@@ -45,10 +41,7 @@ public class Main {
 		// TODO: real CLI parser. Will also want: refresh time, etc.
 		String api_key = args[ 0 ];
 		String api_secret = args[ 1 ];
-		String access_key = args[ 2 ];
-		String access_secret = args[ 3 ];
 		final long update_period = TimeUnit.MINUTES.toMillis( 15 );
-		int port = 8888;
 
 		final AtomicReference<Data> data_slot = new AtomicReference<>();
 		final AtomicReference<String> fetch_status = new AtomicReference<>( "" );
@@ -56,83 +49,103 @@ public class Main {
 		final AtomicLong last_invert = new AtomicLong( 0 );
 
 		Spark.staticFileLocation( "/css" );
-		setPort( port );
+		port( 8888 );
 
-		get( new Route( "/" ) {
-			@Override
-			public Object handle( Request request, spark.Response response ) {
-				Data data = data_slot.get();
 
-				if ( data == null ) {
-					return createLoadingPage();
+		OkHttpClient http_client = new OkHttpClient.Builder()
+			.authenticator( ( route, response ) -> {
+
+				if ( response.request().header( "Authorization" ) != null ) {
+					return null; // Give up, we've already attempted to authenticate.
 				}
 
-				try {
-					return buildMainPage( data );
-				}
-				catch( Exception ex ) {
-					ex.printStackTrace();
-					throw ex;
-				}
-			}
-		} );
-
-		get( new Route( "/debug" ) {
-			Gson gson = new GsonBuilder()
-				.setDateFormat(
-					"yyyy/MM/dd HH:mm:ss Z" )      // "2012/12/28 18:00:00 -0800"
-				.setPrettyPrinting()
-				.disableHtmlEscaping()
-				.create();
-
-			@Override
-			public Object handle( Request request, Response response ) {
-				response.type( "text/plain" );
-
-				StringBuilder buf = new StringBuilder();
-				buf.append( "Fetch status: " ).append( fetch_status.get() );
-				buf.append( "\nNext fetch: " ).append(
-					TimeUnit.MILLISECONDS.toSeconds(
-						( last_fetch.get() + update_period ) -
-							System.currentTimeMillis() ) )
-					.append( " s" );
-				buf.append( "\nInverted: " ).append( INVERT_COLORS.get() ).append(
-					" (switch in " ).append(
-					TimeUnit.MILLISECONDS.toSeconds( last_invert.get() +
-						TimeUnit.MINUTES.toMillis( 10 ) ) ).append( " s)" );
-
-				Data data = data_slot.get();
-				if ( data != null ) {
-					long time = System.currentTimeMillis();
-					boolean inside_service_times =
-						insideService( data.getThisWeekServices(), time );
-
-					buf.append( "\nInside service times: " ).append( inside_service_times );
-
-					buf.append( "\nLast fetch duration: " )
-						.append( data.getFetchDuration() )
-						.append( " ms" );
-
-					buf.append( "\nData:\n" );
-					buf.append( gson.toJson( data ) );
-				}
-
-
-				return buf.toString();
-			}
-		} );
-
-
-
-		OAuthService service = new ServiceBuilder()
-			.provider( PlanningCenterOnlineApi.class )
-			.apiKey( api_key )
-			.apiSecret( api_secret )
+				String credential = Credentials.basic( api_key, api_secret );
+				return response.request().newBuilder()
+					.header( "Authorization", credential )
+					.build();
+			} )
 			.build();
 
-		Token access_token = new Token( access_key, access_secret );
 
-		final DataFetcher fetcher = new DataFetcher( service, access_token );
+		Moshi moshi = new Moshi.Builder()
+			.add( EnvelopeJsonAdapter.FACTORY )
+			.add( Date.class, new Rfc3339DateJsonAdapter() )
+			.build();
+
+
+		final DataFetcher fetcher = new DataFetcher( http_client, moshi );
+
+		boolean inline_fetch = System.getProperty( "inline_fetch" ) != null;
+		if ( inline_fetch ) {
+			System.out.println( "*** INLINE FETCH ENABLED ***" );
+		}
+
+		get( "/", ( request, response ) -> {
+			Data data;
+			if ( inline_fetch ) {
+				data = fetcher.fetchData();
+			}
+			else data = data_slot.get();
+
+			if ( data == null ) {
+				return createLoadingPage();
+			}
+
+			System.out.println( "Data: " + data );
+
+			try {
+				return buildMainPage( data );
+			}
+			catch( Exception ex ) {
+				ex.printStackTrace();
+				throw ex;
+			}
+		} );
+
+		get( "/debug", ( request, response ) -> {
+			response.type( "text/plain" );
+
+			StringBuilder buf = new StringBuilder();
+			buf.append( "Fetch status: " ).append( fetch_status.get() );
+			buf.append( "\nNext fetch: " ).append(
+				TimeUnit.MILLISECONDS.toSeconds(
+					( last_fetch.get() + update_period ) -
+						System.currentTimeMillis() ) )
+				.append( " s" );
+			buf.append( "\nInverted: " ).append( INVERT_COLORS.get() ).append(
+				" (switch in " ).append(
+				TimeUnit.MILLISECONDS.toSeconds( last_invert.get() +
+					TimeUnit.MINUTES.toMillis( 10 ) ) ).append( " s)" );
+
+			Data data = data_slot.get();
+			if ( data != null ) {
+				long time = System.currentTimeMillis();
+				boolean inside_service_times =
+					insideService( data.getThisWeekServices(), time );
+
+				buf.append( "\nInside service times: " ).append( inside_service_times );
+
+				buf.append( "\nLast fetch duration: " )
+					.append( data.getFetchDuration() )
+					.append( " ms" );
+
+				buf.append( "\nData:\n" );
+//				buf.append( gson.toJson( data ) );
+			}
+
+
+			return buf.toString();
+		} );
+
+
+
+//		OAuthService service = new ServiceBuilder()
+//			.provider( PlanningCenterOnlineApi.class )
+//			.apiKey( api_key )
+//			.apiSecret( api_secret )
+//			.build();
+//
+//		Token access_token = new Token( access_key, access_secret );
 
 		Timer timer = new Timer( "Fetch timer" );
 		timer.schedule( new TimerTask() {

@@ -57,6 +57,19 @@ class ServiceData {
 
 
 
+	@Override public String toString() {
+		return "ServiceData{" +
+			"name='" + name + '\'' +
+			", start_date=" + start_date +
+			", volunteer_map=" + volunteer_map +
+			", plan_title='" + plan_title + '\'' +
+			", series_title='" + series_title + '\'' +
+			", start_times=" + Arrays.toString( start_times ) +
+			", end_times=" + Arrays.toString( end_times ) +
+			'}';
+	}
+
+
 
 	public interface NeedOrVolunteer {}
 

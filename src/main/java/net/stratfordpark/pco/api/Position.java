@@ -1,6 +1,7 @@
 package net.stratfordpark.pco.api;
 
-import com.google.gson.annotations.SerializedName;
+import com.squareup.moshi.Json;
+
 
 /**
  *
@@ -10,7 +11,7 @@ public class Position {
 	private final long category_id;
 	private final long id;
 	private final long plan_id;
-	private final @SerializedName( "position" ) String name;
+	private final @Json( name = "position" ) String name;
 	private final int quantity;
 
 	public Position( String category_name, long category_id, long id, long plan_id,

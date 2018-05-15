@@ -67,4 +67,19 @@ class Data {
 	public long getFetchDuration() {
 		return fetch_duration;
 	}
+
+
+
+	@Override public String toString() {
+		return "Data{" +
+			"fetch_duration=" + fetch_duration +
+			", org_name='" + org_name + '\'' +
+			", this_week_date=" + this_week_date +
+			", this_week_services=" + this_week_services +
+			", next_week_date=" + next_week_date +
+			", next_week_services=" + next_week_services +
+			", two_weeks_date=" + two_weeks_date +
+			", two_weeks_services=" + two_weeks_services +
+			'}';
+	}
 }
