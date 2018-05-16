@@ -186,6 +186,8 @@ class DataFetcher {
 				for( int i = 0; i < service_times.size(); i++ ) {
 					PlanTime service_time = service_times.get( i );
 
+					if ( i == 0 ) start_time = service_time.getStartsAt();
+
 					start_times[ i ] = service_time.getStartsAt().getTime();
 					end_times[ i ] = service_time.getStartsAt().getTime();
 				}
