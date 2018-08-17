@@ -6,7 +6,7 @@ import java.util.List;
 /**
  *
  */
-class Data {
+public class Data {
 	private final long fetch_duration;
 
 	private final String org_name;

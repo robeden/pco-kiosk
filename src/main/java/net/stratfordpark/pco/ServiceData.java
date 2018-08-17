@@ -5,7 +5,7 @@ import java.util.*;
 /**
  *
  */
-class ServiceData {
+public class ServiceData {
 	private final String name;
 	private final Date start_date;
 	private final SortedMap<String,List<NeedOrVolunteer>> volunteer_map;    // position, names

@@ -2,9 +2,13 @@ package net.stratfordpark.pco;
 
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.Rfc3339DateJsonAdapter;
+import freemarker.template.Configuration;
+import freemarker.template.Version;
 import okhttp3.Credentials;
 import okhttp3.OkHttpClient;
+import spark.ModelAndView;
 import spark.Spark;
+import spark.template.freemarker.FreeMarkerEngine;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -18,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static spark.Spark.get;
 import static spark.Spark.port;
+import static spark.Spark.staticFiles;
 
 
 public class Main {
@@ -48,7 +53,8 @@ public class Main {
 		final AtomicLong last_fetch = new AtomicLong( 0 );
 		final AtomicLong last_invert = new AtomicLong( 0 );
 
-		Spark.staticFileLocation( "/css" );
+		staticFiles.location( "/css" );
+//		Spark.staticFileLocation( "/css" );
 		port( 8888 );
 
 
@@ -85,13 +91,14 @@ public class Main {
 			if ( inline_fetch ) {
 				data = fetcher.fetchData();
 			}
-			else data = data_slot.get();
-
-			if ( data == null ) {
-				return createLoadingPage();
+			else {
+				data = data_slot.get();
+				if ( data == null ) {
+					return createLoadingPage();
+				}
 			}
 
-			System.out.println( "Data: " + data );
+//			System.out.println( "Data: " + data );
 
 			try {
 				return buildMainPage( data );
@@ -101,6 +108,28 @@ public class Main {
 				throw ex;
 			}
 		} );
+
+		Configuration freemarker_config = new Configuration( new Version( 2, 3, 23 ) );
+		freemarker_config.setClassForTemplateLoading( Main.class, "" );
+		get( "/new", ( req, res ) -> {
+			Data data;
+			if ( inline_fetch ) {
+				data = fetcher.fetchData();
+			}
+			else {
+				data = data_slot.get();
+//				if ( data == null ) {
+//					return createLoadingPage();
+//				}
+			}
+
+            Map<String, Object> attributes = new HashMap<>();
+			attributes.put( "data", data );
+
+            // The hello.ftl file is located in directory:
+            // src/test/resources/spark/template/freemarker
+            return new ModelAndView( attributes, "main.ftl" );
+		}, new FreeMarkerEngine( freemarker_config ) );
 
 		get( "/debug", ( request, response ) -> {
 			response.type( "text/plain" );
@@ -179,6 +208,7 @@ public class Main {
 	}
 
 
+	static AtomicBoolean invert = new AtomicBoolean( true );
 	private static String buildMainPage( Data data ) {
 		long time = System.currentTimeMillis();
 		boolean inside_service_times = insideService( data.getThisWeekServices(), time );
@@ -192,12 +222,15 @@ public class Main {
 		writer.println( "  <head>" );
 		writer.println( "    <title>Volunteer Schedules</title>" );
 		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
-			"href=\"bootstrap.min.css\"/>" );
-		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
 			"href=\"style.css\"/>" );
+		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
+			"href=\"bootstrap.min.css\"/>" );
 		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
 		writer.println( "</head>" );
 
+//		boolean invert = Main.invert.get();
+//		Main.invert.set( !invert );
+//		if ( invert ) {
 		if ( !inside_service_times && INVERT_COLORS.get() ) {
 			writer.println( "  <body class=\"inverted\">" );
 		}
@@ -221,16 +254,23 @@ public class Main {
 		//       if there's a different number, but things might not line up correctly
 
 
+//<div id="textbox">
+//<p class="alignleft">1/10</p>
+//<!--<p class="aligncenter">02:27</p>-->
+//<p class="alignright">100%</p>
+//</div>
+//<div style="clear: both;"></div>
+
 		writer.println( "    <div class=\"row\">" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-		writer.println( "        <h2>This Week <small>" +
+		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
+		writer.println( "       <h2>This Week <small>" +
 			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2>" );
 		writer.println( "      </div>" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
+		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
 		writer.println( "      <h2>Next Week <small>" +
 			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2>" );
 		writer.println( "      </div>" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
+		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
 		writer.println( "      <h2>Two Weeks <small>" +
 			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2>" );
 		writer.println( "      </div>" );

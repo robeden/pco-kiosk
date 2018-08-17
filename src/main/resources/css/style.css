@@ -1,15 +1,44 @@
-body:not(.inverted) {
-    color: #000 !important;
-    background-color: #FFF !important;
+.header img {
+	padding-left: 15px;
+	padding-top: 15px;
+	padding-right: 40px;
+	padding-bottom: 13px;
+}
 
-    background-image: url("logo.png");
-    background-repeat: no-repeat;
-    background-position: center;
+
+.header h1 {
+	display: inline;
+	font-weight: 200;
+	vertical-align: bottom;
+	font-size: 3.5rem;
+}
+
+.h2, h2 {
+	font-weight: 300;
+}
+
+.h2 .small, h2 small {
+	font-weight: 200;
+}
+
+.h1, h1 {
+	text-align: center;
+	padding-top: 1em;
+}
+
+#leftrightbox {
+	display: flex;
+	justify-content: space-between;
+}
+
+body:not(.inverted) {
+    color: #2a2a2a !important;
+    background-color: #FFF !important;
 }
 
 body.inverted {
     color: #FFF !important;
-    background-color: #000 !important;
+    background-color: #2a2a2a !important;
 }
 
 .week-column {
@@ -27,14 +56,23 @@ h2 {
 
 
 .inverted .warning  {
-    background-color: #5E4F00 !important;
+    background-color: rgba(217, 209, 118, 0.2) !important;
 }
 
 body:not(.inverted) .warning {
-    background-color: #d2ca72 !important;
+    background-color: rgba(159, 134, 0, 0.19) !important;
+}
+
+h2 small {
+	padding-left: 0.5em;
+}
+
+h3 small {
+	font-weight: 200;
+	padding-left: 0.5em;
 }
 
 
-.inverted small  {
-    color: #999 !important;
-}
+/*.inverted small  {*/
+    /*color: #999 !important;*/
+/*}*/

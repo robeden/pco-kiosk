@@ -156,9 +156,12 @@ class DataFetcher {
 					if ( !person.getStatus().startsWith( "C" ) &&
 						!person.getStatus().startsWith( "U" ) ) continue;
 
-					List<ServiceData.NeedOrVolunteer> list = volunteer_map
-						.computeIfAbsent( person.getPosition(), p -> new LinkedList<>() );
-					list.add( new ServiceData.Volunteer( person.getPersonName() ) );
+					if ( person.getPosition() != null ) {
+						List<ServiceData.NeedOrVolunteer> list = volunteer_map
+							.computeIfAbsent( person.getPosition(),
+								p -> new LinkedList<>() );
+						list.add( new ServiceData.Volunteer( person.getPersonName() ) );
+					}
 				}
 
 				// Open positions
@@ -242,7 +245,12 @@ class DataFetcher {
 			if ( !response.isSuccessful() ) {
 				throw new IOException( "Unexpected code " + response );
 			}
-			return adapter.fromJson( response.body().string() );
+			final String json = response.body().string();
+//			System.out.println( url );
+//			System.out.println( "---------" );
+//			System.out.println( json );
+//			System.out.println( "---------" );
+			return adapter.fromJson( json );
 		}
 	}
 }
