@@ -51,5 +51,4 @@ jar.dependsOn saveLibs
 shadowJar {
 	baseName = 'pco-kiosk'
 	classifier = null
-	version = null
 }
