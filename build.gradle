@@ -1,4 +1,17 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
+    }
+}
+
+apply plugin: 'com.github.johnrengelman.shadow'
 apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = 'net.stratfordpark.pco.Main'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -17,7 +30,7 @@ dependencies {
     compile group: 'com.squareup.moshi', name: 'moshi-adapters', version: '1.5.0'
 
 	compile 'org.slf4j:slf4j-api:1.7.25'
-	runtime 'org.slf4j:slf4j-log4j-over-slf4j:1.7.25'
+	runtime 'org.slf4j:log4j-over-slf4j:1.7.25'
 	runtime 'org.slf4j:slf4j-simple:1.7.25'
 }
 
