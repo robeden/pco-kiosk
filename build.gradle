@@ -48,8 +48,6 @@ task saveLibs(type: Sync) {
 }
 jar.dependsOn saveLibs
 
-
-
-wrapper {
-    gradleVersion = '2.3'
+shadowJar {
+	baseName = 'pco-kiosk'
 }
