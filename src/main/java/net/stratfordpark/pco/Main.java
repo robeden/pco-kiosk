@@ -26,7 +26,7 @@ import static spark.Spark.staticFiles;
 
 
 public class Main {
-	private static final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMMM d" );
+	private static final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMM d" );
 	private static final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
 
 	private static final long IN_SERVICE_TIME_BUFFER = TimeUnit.MINUTES.toMillis( 30 );
@@ -239,7 +239,7 @@ public class Main {
 
 		writer.println( "    <div class=\"container-fluid\">" );
 		writer.println( "    <div class=\"page-header\">" );
-		writer.println( "      <h1>Volunteer Schedules <small>" + data.getOrgName() +
+		writer.println( "      <h1>Volunteer Schedules<small>" + data.getOrgName() +
 			"</small></h1>" );
 		writer.println( "    </div>" );
 
@@ -263,26 +263,60 @@ public class Main {
 
 		writer.println( "    <div class=\"row\">" );
 		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "       <h2>This Week <small>" +
-			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2>" );
+		writer.println( "       <div><h2>This Week</h2></div><div><h2><small>" +
+			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2></div>" );
 		writer.println( "      </div>" );
 		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "      <h2>Next Week <small>" +
-			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2>" );
+		writer.println( "      <div><h2>Next Week</h2></div><div><h2><small>" +
+			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2></div>" );
 		writer.println( "      </div>" );
 		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "      <h2>Two Weeks <small>" +
-			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2>" );
+		writer.println( "      <div><h2>Two Weeks</h2></div><div><h2><small>" +
+			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2></div>" );
 		writer.println( "      </div>" );
 		writer.println( "    </div>" );
+
+		writer.println( "<div></div>" );
 
 		List<String> service_names = pickServiceNames( this_week, next_week, two_week );
 		for( String service_name : service_names ) {
 			writer.println( "    <div class=\"row\">" );
 
 			// This week
-			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
+			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
 			ServiceData service_data = findDataForName( this_week, service_name );
+			if ( service_data != null ) {
+				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
+					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
+			}
+			writer.println( "      </div>" );
+
+			// Next week
+			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
+			service_data = findDataForName( next_week, service_name );
+			if ( service_data != null ) {
+				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
+					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
+			}
+			writer.println( "      </div>" );
+
+			// Two weeks
+			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
+			service_data = findDataForName( two_week, service_name );
+			if ( service_data != null ) {
+				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
+					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
+			}
+			writer.println( "      </div>" );
+
+			writer.println( "    </div>" );     // /row
+
+
+			writer.println( "    <div class=\"row\">" );
+
+			// This week
+			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
+			service_data = findDataForName( this_week, service_name );
 			if ( service_data != null ) {
 				buildServiceBlock( service_data, columns, writer );
 			}
@@ -366,8 +400,8 @@ public class Main {
 	private static void buildServiceBlock( ServiceData data, int columns,
 		PrintWriter writer ) {
 
-		writer.println( "        <h3 style=\"margin-top: 2em\">" + data.getName() + " <small>" +
-			TIME_DATE_FORMAT.format( data.getStartDate() ) + "</small></h3>" );
+//		writer.println( "        <h3 style=\"margin-top: 2em\">" + data.getName() + " <small>" +
+//			TIME_DATE_FORMAT.format( data.getStartDate() ) + "</small></h3>" );
 //		if ( data.getPlanTitle() != null ) {
 //			writer.println( "        <p class=\"lead\">" + data.getPlanTitle() + "</p>" );
 //		}

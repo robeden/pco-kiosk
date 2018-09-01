@@ -14,11 +14,12 @@
 }
 
 .h2, h2 {
-	font-weight: 300;
+	font-weight: 400;
+	padding-bottom: 30px;
 }
 
 .h2 .small, h2 small {
-	font-weight: 200;
+	font-weight: 300;
 }
 
 .h1, h1 {
@@ -26,9 +27,17 @@
 	padding-top: 1em;
 }
 
-#leftrightbox {
+div.leftrightbox {
 	display: flex;
 	justify-content: space-between;
+}
+
+div.leftrightbox div {
+	flex-grow: 1;
+}
+
+div.leftrightbox div:nth-child(2) {
+	text-align: right;
 }
 
 body:not(.inverted) {
@@ -45,10 +54,6 @@ body.inverted {
     padding: 0 20px 0 20px;
 }
 
-
-h2 {
-    padding-bottom: 15px;
-}
 
 .page-header {
     margin-bottom: 50px;
