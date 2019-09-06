@@ -6,4 +6,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - run: gradlew shadowJar
+    - run: |
+      pwd
+      ls
+      ../../gradlew shadowJar
