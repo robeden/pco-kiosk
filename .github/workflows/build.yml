@@ -6,12 +6,5 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - run: |
-        echo "pwd..."
-        pwd
-        echo "ls..."
-        ls
-        echo "ls parent..."
-        ls ..
-        echo "gradle..."
-        gradlew shadowJar
+    - uses: actions/checkout@v1
+    - run: ./gradlew shadowJar
