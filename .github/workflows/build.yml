@@ -11,5 +11,7 @@ jobs:
         pwd
         echo "ls..."
         ls
+        echo "ls parent..."
+        ls ..
         echo "gradle..."
         gradlew shadowJar
