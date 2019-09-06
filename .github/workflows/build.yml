@@ -1,0 +1,8 @@
+name: Build
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Build shadowJar
+    runs-on: ubuntu-latest
+    run: ./gradlew shadowJar
