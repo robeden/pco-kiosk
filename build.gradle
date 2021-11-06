@@ -1,15 +1,21 @@
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.4'
-    }
+plugins {
+  id 'com.github.johnrengelman.shadow' version '7.1.0'
+  id 'java'
+  id 'application'
 }
 
-apply plugin: 'com.github.johnrengelman.shadow'
-apply plugin: 'java'
-apply plugin: 'application'
+//buildscript {
+//    repositories {
+//        gradlePluginPortal()
+//    }
+//    dependencies {
+//        classpath 'gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.1.0'
+//    }
+//}
+//
+//apply plugin: 'com.github.johnrengelman.shadow'
+//apply plugin: 'java'
+//apply plugin: 'application'
 
 mainClassName = 'net.stratfordpark.pco.Main'
 
@@ -21,17 +27,17 @@ repositories {
 }
 
 dependencies {
-	compile group: 'com.sparkjava', name: 'spark-core', version: '2.7.2'
-	compile group: 'com.sparkjava', name: 'spark-template-freemarker', version: '2.7.1'
+	implementation group: 'com.sparkjava', name: 'spark-core', version: '2.9.3'
+	implementation group: 'com.sparkjava', name: 'spark-template-freemarker', version: '2.7.1'
 
-    compile group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.10.0'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.9'
 
-    compile group: 'com.squareup.moshi', name: 'moshi', version: '1.5.0'
-    compile group: 'com.squareup.moshi', name: 'moshi-adapters', version: '1.5.0'
+    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.12.0'
+    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: '1.12.0'
 
-	compile 'org.slf4j:slf4j-api:1.7.25'
-	runtime 'org.slf4j:log4j-over-slf4j:1.7.25'
-	runtime 'org.slf4j:slf4j-simple:1.7.25'
+	implementation 'org.slf4j:slf4j-api:1.7.32'
+	runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.32'
+	runtimeOnly 'org.slf4j:slf4j-simple:1.7.32'
 }
 
 jar {
@@ -42,13 +48,16 @@ jar {
 }
 
 
-task saveLibs(type: Sync) {
-    from configurations.runtime
-    into "$buildDir/libs/dependencies"
-}
-jar.dependsOn saveLibs
+//task saveLibs(type: Sync) {
+//    from configurations.runtime
+//    into "$buildDir/libs/dependencies"
+//}
+//jar.dependsOn saveLibs
 
 shadowJar {
-	baseName = 'pco-kiosk'
-	classifier = null
+    archiveBaseName.set('pco-kiosk')
+    archiveClassifier.set('')
+    archiveVersion.set('')
+//	baseName = 'pco-kiosk'
+//	classifier = null
 }
