@@ -1,0 +1,12 @@
+micronaut:
+  application:
+    name: pcoKiosk
+  router:
+    static-resources:
+      default:
+        paths:
+          - classpath:css
+netty:
+  default:
+    allocator:
+      max-order: 3

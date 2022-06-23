@@ -1,63 +1,47 @@
 plugins {
-  id 'com.github.johnrengelman.shadow' version '7.1.0'
-  id 'java'
-  id 'application'
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.micronaut.application") version "3.4.1"
 }
 
-//buildscript {
-//    repositories {
-//        gradlePluginPortal()
-//    }
-//    dependencies {
-//        classpath 'gradle.plugin.com.github.jengelman.gradle.plugins:shadow:7.1.0'
-//    }
-//}
-//
-//apply plugin: 'com.github.johnrengelman.shadow'
-//apply plugin: 'java'
-//apply plugin: 'application'
-
-mainClassName = 'net.stratfordpark.pco.Main'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+version = "2.0.0-alpha1"
+group = "net.stratfordpark.pco"
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation group: 'com.sparkjava', name: 'spark-core', version: '2.9.3'
-	implementation group: 'com.sparkjava', name: 'spark-template-freemarker', version: '2.7.1'
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+//    implementation("io.micronaut:micronaut-http-client")
+//    implementation("io.micronaut:micronaut-jackson-databind")
+//    implementation("jakarta.annotation:jakarta.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    implementation("io.micronaut:micronaut-validation")
 
-    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.9'
+    implementation('com.squareup.okhttp3:okhttp:4.10.0')
+    implementation("com.squareup.moshi:moshi-adapters:1.13.0")
 
-    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.12.0'
-    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: '1.12.0'
-
-	implementation 'org.slf4j:slf4j-api:1.7.32'
-	runtimeOnly 'org.slf4j:log4j-over-slf4j:1.7.32'
-	runtimeOnly 'org.slf4j:slf4j-simple:1.7.32'
+//    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.14.9'
+//
+//    implementation group: 'com.squareup.moshi', name: 'moshi', version: '1.12.0'
+//    implementation group: 'com.squareup.moshi', name: 'moshi-adapters', version: '1.12.0'
 }
 
-jar {
-    baseName 'pco-kiosk'
-    manifest {
-        attributes("Main-Class": "net.stratfordpark.pco.Main" )
+
+application {
+    mainClass.set("net.stratfordpark.pco.Application")
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
+}
+
+graalvmNative.toolchainDetection = false
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("net.stratfordpark.pco.*")
     }
-}
-
-
-//task saveLibs(type: Sync) {
-//    from configurations.runtime
-//    into "$buildDir/libs/dependencies"
-//}
-//jar.dependsOn saveLibs
-
-shadowJar {
-    archiveBaseName.set('pco-kiosk')
-    archiveClassifier.set('')
-    archiveVersion.set('')
-//	baseName = 'pco-kiosk'
-//	classifier = null
 }
