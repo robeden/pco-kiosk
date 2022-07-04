@@ -2,9 +2,13 @@ package net.stratfordpark.pco;
 
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter;
+import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
+import io.micronaut.http.annotation.QueryValue;
+import io.micronaut.http.annotation.RequestAttribute;
+import io.micronaut.http.exceptions.HttpStatusException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import okhttp3.Credentials;
@@ -19,11 +23,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
+
+import static java.util.Collections.emptySortedMap;
 
 
 @Controller()
 public class RootController implements AutoCloseable {
-	private final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMM d" );
+	private final DateFormat WEEK_DATE_FORMAT = new SimpleDateFormat( "MMMM d" );
 	private final DateFormat TIME_DATE_FORMAT = new SimpleDateFormat( "h:mm" );
 
 	private final long IN_SERVICE_TIME_BUFFER = TimeUnit.MINUTES.toMillis( 30 );
@@ -106,13 +113,14 @@ public class RootController implements AutoCloseable {
 
 
 	@Get(produces = MediaType.TEXT_HTML)
-    public String index() {
+    public String index( @QueryValue(defaultValue="") String key ) {
+
+		if ( key.isEmpty() ) {
+			throw new HttpStatusException(HttpStatus.FORBIDDEN, "No key provided");
+		}
+		System.out.println("Key: " + key);
 
 		Data data = data_slot.get();
-		if ( data == null ) {
-			return createLoadingPage();
-		}
-
 //		System.out.println( "Data: " + data );
 
 		try {
@@ -128,131 +136,113 @@ public class RootController implements AutoCloseable {
 
 	private String buildMainPage( Data data ) {
 		long time = System.currentTimeMillis();
-		boolean inside_service_times = insideService( data.getThisWeekServices(), time );
-
+		boolean inside_service_times = data == null || insideService( data.getThisWeekServices(), time );
+		boolean inverted = !inside_service_times && INVERT_COLORS.get();
 
 		StringWriter string_writer = new StringWriter();
 		PrintWriter writer = new PrintWriter( string_writer );
 
-		writer.println( "<!DOCTYPE html>" );
-		writer.println( "<html>" );
-		writer.println( "  <head>" );
-		writer.println( "    <title>Volunteer Schedules</title>" );
-		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
-			"href=\"style.css\"/>" );
-		writer.println( "    <link rel=\"stylesheet\" type=\"text/css\" " +
-			"href=\"bootstrap.min.css\"/>" );
-		writer.println( "    <meta http-equiv=\"refresh\" content=\"120\">" );
-		writer.println( "</head>" );
+		writer.println( """
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <title>Volunteer Schedules</title>
+                    <link rel="stylesheet" type="text/css" href="style.css"/>
+                    <meta http-equiv="refresh" content="%d"/>
+                </head>
+            """.formatted( data == null ? 2 : 120 ));
 
-		if ( !inside_service_times && INVERT_COLORS.get() ) {
+		if ( inverted ) {
 			writer.println( "  <body class=\"inverted\">" );
 		}
 		else writer.println( "  <body>" );
 
+		writer.println( "<div class=\"header\"><h1>Volunteer Schedules</h1></div>");
 
-		writer.println( "    <div class=\"container-fluid\">" );
-		writer.println( "    <div class=\"page-header\">" );
-		writer.println( "      <h1>Volunteer Schedules<small>" + data.getOrgName() +
-			"</small></h1>" );
-		writer.println( "    </div>" );
+		if ( data == null ) {
+			writer.println("<div class=\"loading\">Loading...</div>");
+		}
+		else {
+			LinkedHashMap<String,ServiceData> this_week = data.getThisWeekServices();
+			LinkedHashMap<String,ServiceData> next_week = data.getNextWeekServices();
+			LinkedHashMap<String,ServiceData> two_week = data.getTwoWeeksServices();
 
+			writer.println( "<div class=\"main-schedules\"><table><thead><tr class=\"weeks\">" );
+			BiConsumer<String,Date> header_printer = ( words, date ) -> {
+				writer.print( "<th colspan=\"2\"><span class=\"words\">" );
+				writer.print( words );
+				writer.print( "</span><span class=\"date\">" );
+				writer.print( WEEK_DATE_FORMAT.format( date ) );
+				writer.println( "</span></th>" );
+			};
+			header_printer.accept( "This Week", data.getThisWeekDate() );
+			header_printer.accept( "Next Week", data.getNextWeekDate() );
+			header_printer.accept( "Two Weeks", data.getTwoWeeksDate() );
+			writer.println( "</tr></thead><tbody>" );
 
-		final int columns = 4;
+			List<String> service_names =
+				pickServiceNames( this_week.keySet(), next_week.keySet(), two_week.keySet() );
+			for ( String service_name : service_names ) {
+				ServiceData this_sd = this_week.get( service_name );
+				if ( this_sd == null ) continue;
 
-		List<ServiceData> this_week = data.getThisWeekServices();
-		List<ServiceData> next_week = data.getNextWeekServices();
-		List<ServiceData> two_week = data.getTwoWeeksServices();
+				String this_formatted_start_date = TIME_DATE_FORMAT.format( this_sd.getStartDate() );
+				ServiceData next_sd = next_week.get( service_name );
+				String next_formatted_start_date = next_sd ==
+					null ? this_formatted_start_date : TIME_DATE_FORMAT.format( next_sd.getStartDate() );
+				ServiceData two_sd = two_week.get( service_name );
+				String two_formatted_start_date =
+					two_sd == null ? next_formatted_start_date :
+						TIME_DATE_FORMAT.format( two_sd.getStartDate() );
 
-		// TODO: this is assuming the same services are used every week. It won't explode
-		//       if there's a different number, but things might not line up correctly
+				writer.println( "<tr class=\"service-header\">" );
+				if ( this_formatted_start_date.equals( next_formatted_start_date ) ) {
+					if ( next_formatted_start_date.equals( two_formatted_start_date ) ) {
+						// All the same
+						printServiceHeader( service_name, this_formatted_start_date, 6, writer );
+					}
+					else {
+						// Only first two are the same
+						printServiceHeader( service_name, this_formatted_start_date, 4, writer );
+						printServiceHeader( service_name, two_formatted_start_date, 2, writer );
+					}
+				}
+				else if ( next_formatted_start_date.equals( two_formatted_start_date ) ) {
+					// Only last two are the same
+					printServiceHeader( service_name, this_formatted_start_date, 2, writer );
+					printServiceHeader( service_name, two_formatted_start_date, 4, writer );
+				}
+				else {
+					// All different?!? Okay...
+					printServiceHeader( service_name, this_formatted_start_date, 2, writer );
+					printServiceHeader( service_name, next_formatted_start_date, 2, writer );
+					printServiceHeader( service_name, two_formatted_start_date, 2, writer );
+				}
+				writer.println( "</tr>" );
 
-
-//<div id="textbox">
-//<p class="alignleft">1/10</p>
-//<!--<p class="aligncenter">02:27</p>-->
-//<p class="alignright">100%</p>
-//</div>
-//<div style="clear: both;"></div>
-
-		writer.println( "    <div class=\"row\">" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "       <div><h2>This Week</h2></div><div><h2><small>" +
-			WEEK_DATE_FORMAT.format( data.getThisWeekDate() ) + "</small></h2></div>" );
-		writer.println( "      </div>" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "      <div><h2>Next Week</h2></div><div><h2><small>" +
-			WEEK_DATE_FORMAT.format( data.getNextWeekDate() ) + "</small></h2></div>" );
-		writer.println( "      </div>" );
-		writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-		writer.println( "      <div><h2>Two Weeks</h2></div><div><h2><small>" +
-			WEEK_DATE_FORMAT.format( data.getTwoWeeksDate() ) + "</small></h2></div>" );
-		writer.println( "      </div>" );
-		writer.println( "    </div>" );
-
-		writer.println( "<div></div>" );
-
-		List<String> service_names = pickServiceNames( this_week, next_week, two_week );
-		for( String service_name : service_names ) {
-			writer.println( "    <div class=\"row\">" );
-
-			// This week
-			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-			ServiceData service_data = findDataForName( this_week, service_name );
-			if ( service_data != null ) {
-				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
-					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
+				var this_vol_list = toVolunteerList( this_sd.getVolunteerMap() );
+				var next_vol_list =
+					toVolunteerList( next_sd == null ? emptySortedMap() : next_sd.getVolunteerMap() );
+				var two_vol_list =
+					toVolunteerList( two_sd == null ? emptySortedMap() : two_sd.getVolunteerMap() );
+				int num_slots = Math.max( Math.max( this_vol_list.size(), next_vol_list.size() ),
+					two_vol_list.size() );
+				for ( int i = 0; i < num_slots; i++ ) {
+					writer.print( "<tr>" );
+					printVolCells( this_vol_list, i, writer );
+					printVolCells( next_vol_list, i, writer );
+					printVolCells( two_vol_list, i, writer );
+					writer.println( "</tr>" );
+				}
 			}
-			writer.println( "      </div>" );
 
-			// Next week
-			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-			service_data = findDataForName( next_week, service_name );
-			if ( service_data != null ) {
-				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
-					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
-			}
-			writer.println( "      </div>" );
-
-			// Two weeks
-			writer.println( "      <div class=\"col-md-" + columns + " week-column leftrightbox\">" );
-			service_data = findDataForName( two_week, service_name );
-			if ( service_data != null ) {
-				writer.println( "   <div><h3>" + service_data.getName() + "</h3></div><div><h3><small>" +
-					TIME_DATE_FORMAT.format( service_data.getStartDate() ) + "</small></h3></div>" );
-			}
-			writer.println( "      </div>" );
-
-			writer.println( "    </div>" );     // /row
-
-
-			writer.println( "    <div class=\"row\">" );
-
-			// This week
-			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			service_data = findDataForName( this_week, service_name );
-			if ( service_data != null ) {
-				buildServiceBlock( service_data, columns, writer );
-			}
-			writer.println( "      </div>" );
-
-			// Next week
-			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			service_data = findDataForName( next_week, service_name );
-			if ( service_data != null ) {
-				buildServiceBlock( service_data, columns, writer );
-			}
-			writer.println( "      </div>" );
-
-			// Two weeks
-			writer.println( "      <div class=\"col-md-" + columns + " week-column\">" );
-			service_data = findDataForName( two_week, service_name );
-			if ( service_data != null ) {
-				buildServiceBlock( service_data, columns, writer );
-			}
-			writer.println( "      </div>" );
-
-			writer.println( "    </div>" );
+			writer.println( "</tbody></table></div>" );
+		}
+		if ( inverted ) {
+			writer.println( "<div class=\"footer\"><img src=\"logo-inverted.svg\"></div>" );
+		}
+		else {
+			writer.println( "<div class=\"footer\"><img src=\"logo.svg\"></div>" );
 		}
 
 		writer.println( "  </body>" );
@@ -261,115 +251,65 @@ public class RootController implements AutoCloseable {
 		return string_writer.toString();
 	}
 
-
-	private static ServiceData findDataForName( List<ServiceData> data_list, String name ) {
-		for( ServiceData data : data_list ) {
-			if ( name.equals( data.getName() ) ) return data;
-		}
-
-		return null;
-	}
-
-
-
-	/**
-	 * Generates a list of service names based off the longest service data list.
-	 * This assumes that are some point a particular service is skipped and allows lining
-	 * up the other services. Example: A, B, C -> A, C
-	 *
-	 * This will have trouble in the case where one type of service is exchanged for
-	 * another. Example: A, B, C -> A, D, C
-	 */
-	private List<String> pickServiceNames( List<ServiceData>... data_lists ) {
-		// Two passes:
-		//   1) Pick the longest list
-		//   2) Make sure all services are included
-
-		List<String> to_return = Collections.emptyList();
-
-		// TODO: Java 8 could make this much prettier
-		for( List<ServiceData> data_list : data_lists ) {
-			if ( data_list.size() > to_return.size() ) {
-				to_return = new ArrayList<>( data_list.size() );
-				for( ServiceData data : data_list ) {
-					to_return.add( data.getName() );
-				}
-			}
-		}
-
-		// This is a fail-safe for the bad case to ensure all services are displayed
-		for( List<ServiceData> data_list : data_lists ) {
-			for( ServiceData data : data_list ) {
-				String name = data.getName();
-				if ( !to_return.contains( name ) ) {
-					to_return.add( name );
-				}
-			}
-		}
-
-		return to_return;
-	}
-
-
-	private static void buildServiceBlock( ServiceData data, int columns,
+	private static void printServiceHeader( String service_name, String formatted_time, int colspan,
 		PrintWriter writer ) {
 
-//		writer.println( "        <h3 style=\"margin-top: 2em\">" + data.getName() + " <small>" +
-//			TIME_DATE_FORMAT.format( data.getStartDate() ) + "</small></h3>" );
-//		if ( data.getPlanTitle() != null ) {
-//			writer.println( "        <p class=\"lead\">" + data.getPlanTitle() + "</p>" );
-//		}
-		writer.println( "        <table class=\"table\">" );
-		for( Map.Entry<String,List<ServiceData.NeedOrVolunteer>> entry :
-			data.getVolunteerMap().entrySet() ) {
-
-			writer.print( "        <tr><td>" + entry.getKey() + "</td>" );
-
-
-			boolean needs_warning = false;
-			for( ServiceData.NeedOrVolunteer nov : entry.getValue() ) {
-				if ( nov instanceof ServiceData.Need ) {
-					needs_warning = true;
-					break;
-				}
-			}
-
-			if ( needs_warning ) writer.print( "<td class=\"warning\">" );
-			else writer.print( "<td>" );
-
-			boolean first = true;
-			for( ServiceData.NeedOrVolunteer nov : entry.getValue() ) {
-				if ( first ) first = false;
-				else writer.print( "<br>" );
-
-				writer.print( nov );
-			}
-			writer.println( "</td></tr>" );
-		}
-
-		writer.println( "        </table>" );
+		writer.print("<td class=\"service-title\" colspan=\"");
+		writer.print(colspan);
+		writer.print("\"><div><span class=\"service-name\">");
+		writer.print(service_name);
+		writer.print("</span><span class=\"service-time\">");
+		writer.print( formatted_time );
+		writer.print("</div></td>");
 	}
 
 
-	private static String createLoadingPage() {
-		return """
-			<!DOCTYPE html>
-			<html>
-			\t<head>
-			\t\t<link rel="stylesheet" type="text/css" href="bootstrap.min.css"/>
-			\t\t<meta http-equiv="refresh" content="2">
-			\t</head>
+	private static void printVolCells( List<Map.Entry<String,List<ServiceData.NeedOrVolunteer>>> list,
+		int index, PrintWriter writer ) {
 
-			\t<body>
-			\t\t<div class="container-fluid">
-			\t\t\t<!-- <div class="page-header">
-			\t\t\t\t<h1>PCO Kiosk</h1>
-			\t\t\t</div> -->
-			\t\t\t<h1>PCO Kiosk</h1>
-			\t\t\t<h2><small>Loading...</small></h2>
-			\t\t</div>
-			\t</body>
-			</html>""";
+		if ( index >= list.size() ) {
+			writer.print("<td class=\"position\"></td><td class=\"name\"></td>");
+			return;
+		}
+
+		Map.Entry<String,List<ServiceData.NeedOrVolunteer>> entry = list.get(index);
+		List<ServiceData.Volunteer> vol_list = entry.getValue().stream()
+			.filter( nov -> nov instanceof ServiceData.Volunteer )
+			.map( nov -> ( ServiceData.Volunteer ) nov )
+			.toList();
+
+		String fill_class = vol_list.isEmpty() ? "unfilled" : "filled";
+		writer.print( "<td class=\"position " + fill_class + "\">" );
+		writer.print(entry.getKey());
+		writer.print("</td><td class=\"name " + fill_class + "\">");
+		writer.print(textForVolunteerList( vol_list ));
+		writer.print("</td>");
+	}
+
+	private static String textForVolunteerList(List<ServiceData.Volunteer> list) {
+		return String.join( "<br>", list.stream().map( Object::toString ).toList() );
+	}
+
+
+
+	private List<String> pickServiceNames( Set<String> one, Set<String> two, Set<String> three ) {
+		LinkedHashSet<String> name_set = new LinkedHashSet<>();
+		if ( one.size() >= three.size() ) {
+			name_set.addAll( one );
+		}
+		else name_set.addAll( three );
+
+		name_set.addAll( one );
+		name_set.addAll( two );
+		name_set.addAll( three );
+		return List.copyOf( name_set );
+	}
+
+
+	private static List<Map.Entry<String,List<ServiceData.NeedOrVolunteer>>> toVolunteerList(
+		SortedMap<String,List<ServiceData.NeedOrVolunteer>> map ) {
+
+		return new ArrayList<>( map.entrySet() );
 	}
 
 
@@ -377,11 +317,10 @@ public class RootController implements AutoCloseable {
 	 * Returns true if the current time is within the given service time, taking
 	 * the IN_SERVICE_TIME_BUFFER into account.
 	 */
-	private boolean insideService( List<ServiceData> this_week_services,
+	private boolean insideService( LinkedHashMap<String,ServiceData> this_week_services,
 		long current_time ) {
 
-		for( ServiceData service : this_week_services ) {
-
+		for( ServiceData service : this_week_services.values() ) {
 			long[] start_times = service.getStartTimes();
 			long[] end_times = service.getEndTimes();
 

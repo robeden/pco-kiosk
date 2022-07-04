@@ -1,6 +1,7 @@
 package net.stratfordpark.pco;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
@@ -12,13 +13,13 @@ public class Data {
 	private final String org_name;
 
 	private final Date this_week_date;
-	private final List<ServiceData> this_week_services;
+	private final LinkedHashMap<String,ServiceData> this_week_services;
 
 	private final Date next_week_date;
-	private final List<ServiceData> next_week_services;
+	private final LinkedHashMap<String,ServiceData> next_week_services;
 
 	private final Date two_weeks_date;
-	private final List<ServiceData> two_weeks_services;
+	private final LinkedHashMap<String,ServiceData> two_weeks_services;
 
 	Data( long fetch_duration, String org_name,
 		Date this_week_date, List<ServiceData> this_week_services,
@@ -28,11 +29,11 @@ public class Data {
 		this.fetch_duration = fetch_duration;
 		this.org_name = org_name;
 		this.this_week_date = this_week_date;
-		this.this_week_services = this_week_services;
+		this.this_week_services = listToMap( this_week_services );
 		this.next_week_date = next_week_date;
-		this.next_week_services = next_week_services;
+		this.next_week_services = listToMap( next_week_services );
 		this.two_weeks_date = two_weeks_date;
-		this.two_weeks_services = two_weeks_services;
+		this.two_weeks_services = listToMap( two_weeks_services );
 	}
 
 
@@ -44,7 +45,7 @@ public class Data {
 		return this_week_date;
 	}
 
-	public List<ServiceData> getThisWeekServices() {
+	public LinkedHashMap<String,ServiceData> getThisWeekServices() {
 		return this_week_services;
 	}
 
@@ -52,7 +53,7 @@ public class Data {
 		return next_week_date;
 	}
 
-	public List<ServiceData> getNextWeekServices() {
+	public LinkedHashMap<String,ServiceData> getNextWeekServices() {
 		return next_week_services;
 	}
 
@@ -60,7 +61,7 @@ public class Data {
 		return two_weeks_date;
 	}
 
-	public List<ServiceData> getTwoWeeksServices() {
+	public LinkedHashMap<String,ServiceData> getTwoWeeksServices() {
 		return two_weeks_services;
 	}
 
@@ -81,5 +82,14 @@ public class Data {
 			", two_weeks_date=" + two_weeks_date +
 			", two_weeks_services=" + two_weeks_services +
 			'}';
+	}
+
+
+	private static LinkedHashMap<String,ServiceData> listToMap(List<ServiceData> list) {
+		LinkedHashMap<String,ServiceData> to_return = new LinkedHashMap<>();
+		for ( ServiceData data : list ) {
+			to_return.put( data.getName(), data );
+		}
+		return to_return;
 	}
 }
