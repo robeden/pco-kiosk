@@ -113,13 +113,7 @@ public class RootController implements AutoCloseable {
 
 
 	@Get(produces = MediaType.TEXT_HTML)
-    public String index( @QueryValue(defaultValue="") String key ) {
-
-		if ( key.isEmpty() ) {
-			throw new HttpStatusException(HttpStatus.FORBIDDEN, "No key provided");
-		}
-		System.out.println("Key: " + key);
-
+    public String index() {
 		Data data = data_slot.get();
 //		System.out.println( "Data: " + data );
 
