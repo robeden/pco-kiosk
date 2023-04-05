@@ -2,13 +2,9 @@ package net.stratfordpark.pco;
 
 import com.squareup.moshi.Moshi;
 import com.squareup.moshi.adapters.Rfc3339DateJsonAdapter;
-import io.micronaut.http.HttpStatus;
 import io.micronaut.http.MediaType;
 import io.micronaut.http.annotation.Controller;
 import io.micronaut.http.annotation.Get;
-import io.micronaut.http.annotation.QueryValue;
-import io.micronaut.http.annotation.RequestAttribute;
-import io.micronaut.http.exceptions.HttpStatusException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import okhttp3.Credentials;
@@ -171,7 +167,7 @@ public class RootController implements AutoCloseable {
 			};
 			header_printer.accept( "This Week", data.getThisWeekDate() );
 			header_printer.accept( "Next Week", data.getNextWeekDate() );
-			header_printer.accept( "Two Weeks", data.getTwoWeeksDate() );
+			header_printer.accept( "In Two Weeks", data.getTwoWeeksDate() );
 			writer.println( "</tr></thead><tbody>" );
 
 			List<String> service_names =
@@ -281,7 +277,11 @@ public class RootController implements AutoCloseable {
 	}
 
 	private static String textForVolunteerList(List<ServiceData.Volunteer> list) {
-		return String.join( "<br>", list.stream().map( Object::toString ).toList() );
+		String str = String.join( "<br>", list.stream().map( Object::toString ).toList() );
+		if ( str.isEmpty() ) {
+			return "-";
+		}
+		else return str;
 	}
 
 

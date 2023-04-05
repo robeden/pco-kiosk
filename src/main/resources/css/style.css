@@ -24,12 +24,12 @@ body > .footer {
 
 h1 {
 	text-align: center;
-	font-size: 32px;
+	font-size: 50px;
 	font-weight: 400;
 }
 
 .loading {
-	font-size: 28px;
+	font-size: 40px;
 	height: 300px;
 	display: flex;
 	justify-content: center;
@@ -45,60 +45,71 @@ thead > tr > th {
 }
 
 tr.weeks > th > .words {
-	font-size: 24px;
+	font-size: 36px;
 	font-weight: 400;
 	display: block;
 }
 tr.weeks > th > .date {
-	font-size: 17px;
+	font-size: 20px;
 	font-weight: 200;
+	color: #646464;
 }
 
 tr.service-header {
-	font-size: 19px;
+	font-size: 36px;
 	font-weight: 300;
-	padding-top: 8px;
+	padding-top: 24px;
 }
 
 tr.service-header > td.service-title > div {
 	display: flex;
 	justify-content: center;
 	align-content: baseline;
-	gap: 16px;
+	/* gap: 16px; */
 }
 
 td.service-title > div {
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+	
 	padding-top: 16px;
 	padding-bottom: 16px;
 }
 td.service-title .service-name {
-	font-size: 22px;
+	font-size: 40px;
 	font-weight: 300;
 	display: block;
 }
 td.service-title .service-time {
-	font-size: 22px;
+	font-size: 20px;
 	font-weight: 100;
+	color: #646464;
 }
 
 tr.service-header > td {
 	/* border-top: 1px solid #a6a6a6; */
-	padding-top: 6px;
+	padding-top: 14px;
 }
 
 td.position {
+	font-size: 18px;
+	font-weight: 100;
 	padding-left: 8px;
-	padding-bottom: 10px;
+	padding-bottom: 20px;
 	width: 14.6%;
 	vertical-align: top;
+	color: #535353;
 }
-td.position.unfilled {
+td.position.unfilled, td.name.unfilled {
 	color: #8b8b8b;
 }
 td.name {
+	font-size: 18px;
 	padding-right: 8px;
-	padding-bottom: 8px;
+	padding-bottom: 16px;
 	width: 18.7%;
+	vertical-align: top;
 }
 
 
@@ -106,9 +117,9 @@ td.name {
 	display: flex;
 	justify-content: center;
 	align-items: flex-end;
-	margin-bottom: 16px;
+	margin-bottom: 32px;
 }
 
 .footer > img {
-	height: 100px;
+	height: 150px;
 }
