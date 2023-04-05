@@ -167,7 +167,7 @@ public class RootController implements AutoCloseable {
 			};
 			header_printer.accept( "This Week", data.getThisWeekDate() );
 			header_printer.accept( "Next Week", data.getNextWeekDate() );
-			header_printer.accept( "In Two Weeks", data.getTwoWeeksDate() );
+			header_printer.accept( "Two Weeks", data.getTwoWeeksDate() );
 			writer.println( "</tr></thead><tbody>" );
 
 			List<String> service_names =

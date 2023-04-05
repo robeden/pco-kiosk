@@ -77,7 +77,7 @@ td.service-title > div {
 	padding-bottom: 16px;
 }
 td.service-title .service-name {
-	font-size: 40px;
+	font-size: 36px;
 	font-weight: 300;
 	display: block;
 }
@@ -85,6 +85,9 @@ td.service-title .service-time {
 	font-size: 20px;
 	font-weight: 100;
 	color: #646464;
+}
+.inverted td.service-title .service-time {
+	color: #aaaaaa;
 }
 
 tr.service-header > td {
@@ -100,6 +103,9 @@ td.position {
 	width: 14.6%;
 	vertical-align: top;
 	color: #535353;
+}
+.inverted td.position {
+	color: #aaaaaa;
 }
 td.position.unfilled, td.name.unfilled {
 	color: #8b8b8b;
