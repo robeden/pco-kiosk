@@ -6,6 +6,7 @@ html, body {
 	display: flex;
 	flex-direction: column;
 	gap: 24px;
+	cursor: none;
 }
 body.inverted {
 	background-color: black;
