@@ -18,8 +18,8 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation("io.micronaut:micronaut-validation")
 
-    implementation('com.squareup.okhttp3:okhttp:4.10.0')
-    implementation('com.squareup.moshi:moshi-adapters:1.14.0')
+    implementation('com.squareup.okhttp3:okhttp:4.12.0')
+    implementation('com.squareup.moshi:moshi-adapters:1.15.1')
 }
 
 

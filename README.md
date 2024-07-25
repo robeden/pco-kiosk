@@ -33,4 +33,4 @@ For more instructions, including how to setup a Raspberry Pi kiosk, see
 Admittedly, the code is currently very rigid to suit my current needs. Problem reports or 
 feature suggestions are always welcome via 
 [the issues page](https://github.com/robeden/pco-kiosk/issues), 
-email (robeden1 at gmail dot com) or twitter (RobEden).
+email (rob at robeden dot com) or on [Mastodon - @robeden@fostodon.org](https://fosstodon.org/@robeden).
